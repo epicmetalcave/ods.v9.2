@@ -1,0 +1,333 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ShortcutSettings Component Test</title>
+    <style>
+        :root {
+            --theme-bg: #000000;
+            --theme-text: #00FF00;
+            --theme-ui: #00FF00;
+            --theme-font: 'Courier New', monospace;
+        }
+        
+        body {
+            background: var(--theme-bg);
+            color: var(--theme-text);
+            font-family: var(--theme-font);
+            padding: 20px;
+            margin: 0;
+        }
+        
+        h1, h2 {
+            border-bottom: 1px solid var(--theme-ui);
+            padding-bottom: 10px;
+        }
+        
+        .test-controls {
+            margin: 20px 0;
+            padding: 20px;
+            border: 1px solid var(--theme-ui);
+        }
+        
+        button {
+            background: var(--theme-bg);
+            color: var(--theme-ui);
+            border: 1px solid var(--theme-ui);
+            padding: 10px 20px;
+            margin: 5px;
+            cursor: pointer;
+            font-family: var(--theme-font);
+        }
+        
+        button:hover {
+            background: var(--theme-ui);
+            color: var(--theme-bg);
+        }
+        
+        .modal-simulation {
+            margin: 20px 0;
+            padding: 20px;
+            border: 2px solid var(--theme-ui);
+            background: var(--theme-bg);
+        }
+        
+        .modal-header {
+            border-bottom: 1px solid var(--theme-ui);
+            padding-bottom: 10px;
+            margin-bottom: 20px;
+        }
+        
+        .modal-settings-panel {
+            border: 1px dashed var(--theme-ui);
+            padding: 20px;
+            margin-top: 20px;
+        }
+        
+        .test-result {
+            padding: 10px;
+            margin: 5px 0;
+            border: 1px solid var(--theme-ui);
+        }
+        
+        .pass { color: #00ff00; }
+        .fail { color: #ff0000; }
+        
+        pre {
+            background: #001100;
+            padding: 10px;
+            overflow-x: auto;
+            border: 1px solid var(--theme-ui);
+        }
+    </style>
+    <link rel="stylesheet" href="../../../core/components/collapsible/collapsible-container.css">
+    <link rel="stylesheet" href="../../../core/components/modal-settings/modal-settings.css">
+    <link rel="stylesheet" href="shortcut-settings.css">
+</head>
+<body>
+    <h1>ShortcutSettings Component Test Suite</h1>
+    
+    <div class="test-controls">
+        <h2>Test Controls</h2>
+        <button onclick="runTests()">Run All Tests</button>
+        <button onclick="createDemo()">Create Demo</button>
+        <button onclick="expandAll()">Expand All</button>
+        <button onclick="collapseAll()">Collapse All</button>
+        <button onclick="testPosition()">Test Position Display</button>
+        <button onclick="clearAll()">Clear All</button>
+    </div>
+    
+    <div id="test-results"></div>
+    
+    <h2>Modal Simulation</h2>
+    <div id="demo-area"></div>
+    
+    <h2>Storage Contents</h2>
+    <pre id="storage-view">{}</pre>
+    
+    <script src="../../../core/components/collapsible/collapsible-container.js"></script>
+    <script src="../../../core/components/modal-settings/modal-settings.js"></script>
+    <script src="../../../core/storage/shortcut-store.js"></script>
+    <script src="shortcut-settings.js"></script>
+    <script>
+        // Test variables
+        let settings = [];
+        
+        // Test suite
+        function runTests() {
+            const results = document.getElementById('test-results');
+            results.innerHTML = '<h2>Test Results</h2>';
+            
+            // Test 1: Creation
+            test('ShortcutSettings creates successfully', () => {
+                const s = new ShortcutSettings({
+                    modalId: 'test-modal',
+                    modalTitle: 'Test Modal'
+                });
+                return s.getElement() !== null;
+            });
+            
+            // Test 2: Has correct title
+            test('Has SHORTCUT SETTINGS title', () => {
+                const s = new ShortcutSettings({});
+                const title = s.getElement().querySelector('.collapsible-container__title');
+                return title && title.textContent === 'SHORTCUT SETTINGS';
+            });
+            
+            // Test 3: Description present
+            test('Description text is present', () => {
+                const s = new ShortcutSettings({});
+                s.expand();
+                const desc = s.elements.description;
+                return desc && desc.textContent.includes('shortcut bar');
+            });
+            
+            // Test 4: All placeholder areas exist
+            test('All placeholder areas exist', () => {
+                const s = new ShortcutSettings({});
+                return s.elements.toggleArea !== null &&
+                       s.elements.inputArea !== null &&
+                       s.elements.previewArea !== null &&
+                       s.elements.positionArea !== null;
+            });
+            
+            // Test 5: Position area hidden by default
+            test('Position area hidden by default', () => {
+                const s = new ShortcutSettings({});
+                return s.elements.positionArea.style.display === 'none';
+            });
+            
+            // Test 6: Expand/Collapse works
+            test('Expand and collapse work', () => {
+                const s = new ShortcutSettings({});
+                s.expand();
+                const expanded = s.isExpanded();
+                s.collapse();
+                const collapsed = !s.isExpanded();
+                return expanded && collapsed;
+            });
+            
+            // Test 7: Mount/Unmount
+            test('Mount and unmount work', () => {
+                const s = new ShortcutSettings({});
+                const parent = document.createElement('div');
+                s.mount(parent);
+                const mounted = parent.querySelector('.collapsible-container') !== null;
+                s.unmount();
+                const unmounted = parent.querySelector('.collapsible-container') === null;
+                return mounted && unmounted;
+            });
+            
+            // Test 8: State persistence
+            test('State persists', () => {
+                const s = new ShortcutSettings({ modalId: 'persist-test' });
+                s.expand();
+                const stored = localStorage.getItem('shortcut-settings-state');
+                return stored && stored.includes('persist-test');
+            });
+            
+            // Test 9: Position update method
+            test('Position update method works', () => {
+                const s = new ShortcutSettings({});
+                s.updatePositionInfo(7, true);
+                const visible = s.elements.positionArea.style.display === 'block';
+                const hasText = s.elements.positionArea.textContent.includes('Position 7');
+                return visible && hasText;
+            });
+            
+            // Test 10: Configuration passed correctly
+            test('Configuration stored correctly', () => {
+                const s = new ShortcutSettings({
+                    modalId: 'config-test',
+                    modalTitle: 'Config Test'
+                });
+                return s.modalId === 'config-test' && s.modalTitle === 'Config Test';
+            });
+        }
+        
+        function test(name, fn) {
+            const results = document.getElementById('test-results');
+            const result = document.createElement('div');
+            result.className = 'test-result';
+            
+            try {
+                const passed = fn();
+                result.innerHTML = `<span class="${passed ? 'pass' : 'fail'}">${passed ? '✓' : '✗'}</span> ${name}`;
+            } catch (e) {
+                result.innerHTML = `<span class="fail">✗</span> ${name} - Error: ${e.message}`;
+            }
+            
+            results.appendChild(result);
+        }
+        
+        // Demo functions
+        function createDemo() {
+            const area = document.getElementById('demo-area');
+            area.innerHTML = '';
+            settings = [];
+            
+            // Create modal simulation
+            const modal1 = document.createElement('div');
+            modal1.className = 'modal-simulation';
+            modal1.innerHTML = `
+                <div class="modal-header">
+                    <h3>Backlog Manager Modal</h3>
+                </div>
+                <div class="modal-content">
+                    <p>Modal content would go here...</p>
+                </div>
+                <div class="modal-settings-panel">
+                    <h4>Module Settings</h4>
+                    <div id="settings-mount-1"></div>
+                </div>
+            `;
+            area.appendChild(modal1);
+            
+            // Mount ShortcutSettings
+            const s1 = new ShortcutSettings({
+                modalId: 'backlog-modal',
+                modalTitle: 'Backlog Manager'
+            });
+            s1.mount(document.getElementById('settings-mount-1'));
+            settings.push(s1);
+            
+            // Create second modal
+            const modal2 = document.createElement('div');
+            modal2.className = 'modal-simulation';
+            modal2.innerHTML = `
+                <div class="modal-header">
+                    <h3>Settings Modal</h3>
+                </div>
+                <div class="modal-content">
+                    <p>Settings content would go here...</p>
+                </div>
+                <div class="modal-settings-panel">
+                    <h4>Module Settings</h4>
+                    <div id="settings-mount-2"></div>
+                </div>
+            `;
+            area.appendChild(modal2);
+            
+            // Mount second ShortcutSettings
+            const s2 = new ShortcutSettings({
+                modalId: 'settings-modal',
+                modalTitle: 'Settings'
+            });
+            s2.mount(document.getElementById('settings-mount-2'));
+            settings.push(s2);
+            
+            updateStorageView();
+        }
+        
+        function expandAll() {
+            settings.forEach(s => s.expand());
+            updateStorageView();
+        }
+        
+        function collapseAll() {
+            settings.forEach(s => s.collapse());
+            updateStorageView();
+        }
+        
+        function testPosition() {
+            if (settings.length > 0) {
+                settings[0].expand();
+                settings[0].updatePositionInfo(7, true);
+                
+                setTimeout(() => {
+                    settings[0].updatePositionInfo(0, false);
+                }, 3000);
+            }
+        }
+        
+        function clearAll() {
+            settings.forEach(s => s.destroy());
+            settings = [];
+            document.getElementById('demo-area').innerHTML = '';
+            updateStorageView();
+        }
+        
+        function updateStorageView() {
+            const stored = localStorage.getItem('shortcut-settings-state');
+            const pre = document.getElementById('storage-view');
+            if (stored) {
+                try {
+                    const parsed = JSON.parse(stored);
+                    pre.textContent = JSON.stringify(parsed, null, 2);
+                } catch {
+                    pre.textContent = stored;
+                }
+            } else {
+                pre.textContent = '{}';
+            }
+        }
+        
+        // Initialize on load
+        window.addEventListener('load', () => {
+            runTests();
+            createDemo();
+        });
+    </script>
+</body>
+</html>

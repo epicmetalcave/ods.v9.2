@@ -1,0 +1,27 @@
+/* Shortcut Settings Specific Styles */
+
+/* Component Areas - Shortcut specific */
+.shortcut-settings__toggle-area,
+.shortcut-settings__input-area,
+.shortcut-settings__preview-area {
+  margin: 8px 0;
+  padding: 6px;
+  background: rgba(0, 255, 0, 0.02);
+}
+
+/* Position area - Shortcut specific */
+.shortcut-settings__position-area {
+  margin: 8px 0;
+  padding: 6px;
+  background: rgba(0, 255, 0, 0.05);
+  border: 1px solid rgba(0, 255, 0, 0.3);
+  font-size: 11px;
+  color: var(--theme-text, #00FF00);
+  font-family: var(--theme-font, 'Share Tech Mono', monospace);
+}
+
+.shortcut-settings__position-info {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}

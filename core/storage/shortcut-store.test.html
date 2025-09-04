@@ -1,0 +1,261 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ShortcutDataStore Tests</title>
+    <style>
+        body {
+            font-family: 'Courier New', monospace;
+            background: #000;
+            color: #0f0;
+            padding: 20px;
+        }
+        .test-result {
+            margin: 10px 0;
+            padding: 10px;
+            background: #001100;
+            border: 1px solid #0f0;
+        }
+        .pass { color: #0f0; }
+        .fail { color: #f00; }
+        button {
+            background: #000;
+            color: #0f0;
+            border: 1px solid #0f0;
+            padding: 10px;
+            cursor: pointer;
+            margin: 5px;
+        }
+        button:hover {
+            background: #0f0;
+            color: #000;
+        }
+        pre {
+            background: #001100;
+            padding: 10px;
+            overflow-x: auto;
+        }
+        h2 {
+            border-bottom: 1px solid #0f0;
+            padding-bottom: 10px;
+        }
+    </style>
+</head>
+<body>
+    <h1>ShortcutDataStore Test Suite</h1>
+    
+    <div>
+        <button onclick="runAllTests()">Run All Tests</button>
+        <button onclick="clearStorage()">Clear Storage</button>
+        <button onclick="viewStorage()">View Storage</button>
+    </div>
+    
+    <h2>Test Results</h2>
+    <div id="results"></div>
+    
+    <h2>Storage Contents</h2>
+    <pre id="storage"></pre>
+    
+    <h2>Event Log</h2>
+    <div id="events"></div>
+    
+    <script src="shortcut-store.js"></script>
+    <script>
+        let store = new ShortcutDataStore();
+        let testResults = [];
+        let eventCount = 0;
+        
+        // Listen for events
+        document.addEventListener('shortcuts-updated', (e) => {
+            eventCount++;
+            const eventDiv = document.getElementById('events');
+            eventDiv.innerHTML = `Events fired: ${eventCount} | Last: ${e.detail.shortcuts.length} shortcuts`;
+        });
+        
+        function runAllTests() {
+            testResults = [];
+            eventCount = 0;
+            localStorage.removeItem(store.STORAGE_KEY);
+            store = new ShortcutDataStore();
+            
+            // Test 1: Empty load
+            test('Empty load returns array', () => {
+                const result = store.load();
+                return Array.isArray(result) && result.length === 0;
+            });
+            
+            // Test 2: Save and load
+            test('Save and load', () => {
+                const data = [{
+                    id: 'shortcut-test',
+                    label: 'TST',
+                    enabled: true,
+                    action: { type: 'modal', target: 'test-modal' },
+                    position: 0,
+                    visible: true
+                }];
+                store.save(data);
+                const loaded = store.load();
+                return loaded.length === 1 && loaded[0].label === 'TST';
+            });
+            
+            // Test 3: Toggle on
+            test('Toggle creates shortcut', () => {
+                store.clear();
+                store.toggle('new-modal', true, 'New Modal');
+                const shortcut = store.getShortcut('new-modal');
+                return shortcut && shortcut.enabled && shortcut.label === 'NM';
+            });
+            
+            // Test 4: Toggle off
+            test('Toggle disables shortcut', () => {
+                store.toggle('new-modal', false);
+                const shortcut = store.getShortcut('new-modal');
+                return shortcut && !shortcut.enabled;
+            });
+            
+            // Test 5: Update label
+            test('Update label', () => {
+                store.updateLabel('new-modal', 'ABC');
+                const shortcut = store.getShortcut('new-modal');
+                return shortcut.label === 'ABC';
+            });
+            
+            // Test 6: Label truncation
+            test('Label truncates at 20 chars', () => {
+                store.updateLabel('new-modal', 'THIS IS A VERY LONG LABEL THAT EXCEEDS');
+                const shortcut = store.getShortcut('new-modal');
+                return shortcut.label.length === 20;
+            });
+            
+            // Test 7: Empty label defaults
+            test('Empty label becomes XX', () => {
+                store.updateLabel('new-modal', '');
+                const shortcut = store.getShortcut('new-modal');
+                return shortcut.label === 'XX';
+            });
+            
+            // Test 8: Position reindexing
+            test('Positions reindex', () => {
+                store.clear();
+                const data = [
+                    { action: { target: 'a' }, position: 5, label: 'A' },
+                    { action: { target: 'b' }, position: 2, label: 'B' },
+                    { action: { target: 'c' }, position: 9, label: 'C' }
+                ];
+                store.save(data);
+                const loaded = store.load();
+                return loaded[0].position === 0 && 
+                       loaded[1].position === 1 && 
+                       loaded[2].position === 2;
+            });
+            
+            // Test 9: Get enabled only
+            test('Get enabled shortcuts', () => {
+                store.clear();
+                store.toggle('modal1', true, 'One');
+                store.toggle('modal2', false, 'Two');
+                store.toggle('modal3', true, 'Three');
+                const enabled = store.getEnabledShortcuts();
+                return enabled.length === 2;
+            });
+            
+            // Test 10: Remove shortcut
+            test('Remove shortcut', () => {
+                const before = store.load().length;
+                store.remove('modal1');
+                const after = store.load().length;
+                return after === before - 1 && !store.getShortcut('modal1');
+            });
+            
+            // Test 11: Invalid data recovery
+            test('Recovers from corrupt data', () => {
+                localStorage.setItem(store.STORAGE_KEY, 'INVALID JSON');
+                store = new ShortcutDataStore();
+                const loaded = store.load();
+                return Array.isArray(loaded) && loaded.length === 0;
+            });
+            
+            // Test 12: Event dispatching
+            test('Events dispatch', () => {
+                const before = eventCount;
+                store.toggle('event-test', true);
+                return eventCount > before;
+            });
+            
+            // Test 13: Cache works
+            test('Cache prevents repeated loads', () => {
+                const first = store.load();
+                const second = store.load();
+                return first === second;
+            });
+            
+            // Test 14: Export/Import
+            test('Export and import', () => {
+                store.clear();
+                store.toggle('export-test', true, 'Export Test');
+                const exported = store.exportData();
+                store.clear();
+                store.importData(exported);
+                return store.getShortcut('export-test') !== null;
+            });
+            
+            // Test 15: Storage info
+            test('Storage info works', () => {
+                const info = store.getStorageInfo();
+                return info.bytes > 0 && info.shortcutCount >= 0;
+            });
+            
+            displayResults();
+            viewStorage();
+        }
+        
+        function test(name, fn) {
+            try {
+                const result = fn();
+                testResults.push({ name, passed: result });
+            } catch (error) {
+                testResults.push({ name, passed: false, error });
+            }
+        }
+        
+        function displayResults() {
+            const div = document.getElementById('results');
+            div.innerHTML = testResults.map(r => `
+                <div class="test-result">
+                    <span class="${r.passed ? 'pass' : 'fail'}">
+                        ${r.passed ? '✓' : '✗'}
+                    </span>
+                    ${r.name}
+                </div>
+            `).join('');
+        }
+        
+        function clearStorage() {
+            localStorage.removeItem(store.STORAGE_KEY);
+            store = new ShortcutDataStore();
+            viewStorage();
+            document.getElementById('results').innerHTML = '<div class="test-result">Storage cleared</div>';
+        }
+        
+        function viewStorage() {
+            const data = localStorage.getItem(store.STORAGE_KEY);
+            const pre = document.getElementById('storage');
+            if (data) {
+                try {
+                    const parsed = JSON.parse(data);
+                    pre.textContent = JSON.stringify(parsed, null, 2);
+                } catch {
+                    pre.textContent = data;
+                }
+            } else {
+                pre.textContent = 'No data in storage';
+            }
+        }
+        
+        // Auto-run tests on load
+        window.addEventListener('load', runAllTests);
+    </script>
+</body>
+</html>

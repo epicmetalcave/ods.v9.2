@@ -1,0 +1,292 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ModalSettings Base Class Test</title>
+    <style>
+        :root {
+            --theme-bg: #000000;
+            --theme-text: #00FF00;
+            --theme-ui: #00FF00;
+            --theme-font: 'Courier New', monospace;
+        }
+        
+        body {
+            background: var(--theme-bg);
+            color: var(--theme-text);
+            font-family: var(--theme-font);
+            padding: 20px;
+            margin: 0;
+        }
+        
+        h1, h2 {
+            border-bottom: 1px solid var(--theme-ui);
+            padding-bottom: 10px;
+        }
+        
+        .test-controls {
+            margin: 20px 0;
+            padding: 20px;
+            border: 1px solid var(--theme-ui);
+        }
+        
+        button {
+            background: var(--theme-bg);
+            color: var(--theme-ui);
+            border: 1px solid var(--theme-ui);
+            padding: 10px 20px;
+            margin: 5px;
+            cursor: pointer;
+            font-family: var(--theme-font);
+        }
+        
+        button:hover {
+            background: var(--theme-ui);
+            color: var(--theme-bg);
+        }
+        
+        .demo-container {
+            margin: 20px 0;
+            padding: 20px;
+            border: 1px solid var(--theme-ui);
+        }
+        
+        .test-result {
+            padding: 10px;
+            margin: 5px 0;
+            border: 1px solid var(--theme-ui);
+        }
+        
+        .pass { color: #00ff00; }
+        .fail { color: #ff0000; }
+        
+        .event-log {
+            background: #001100;
+            border: 1px solid var(--theme-ui);
+            padding: 10px;
+            margin: 20px 0;
+            height: 200px;
+            overflow-y: auto;
+            font-size: 11px;
+        }
+    </style>
+    <link rel="stylesheet" href="../collapsible/collapsible-container.css">
+    <link rel="stylesheet" href="modal-settings.css">
+</head>
+<body>
+    <h1>ModalSettings Base Class Test Suite</h1>
+    
+    <div class="test-controls">
+        <h2>Test Controls</h2>
+        <button onclick="runTests()">Run All Tests</button>
+        <button onclick="createBasicSettings()">Create Basic Settings</button>
+        <button onclick="createCustomSettings()">Create Custom Settings</button>
+        <button onclick="testEventSystem()">Test Event System</button>
+        <button onclick="clearAll()">Clear All</button>
+    </div>
+    
+    <div id="test-results"></div>
+    
+    <h2>Demo Area</h2>
+    <div id="demo-area" class="demo-container"></div>
+    
+    <h2>Event Log</h2>
+    <div id="event-log" class="event-log"></div>
+    
+    <script src="../collapsible/collapsible-container.js"></script>
+    <script src="modal-settings.js"></script>
+    <script>
+        let settings = [];
+        
+        // Custom settings class for testing inheritance
+        class CustomSettings extends ModalSettings {
+            initialize() {
+                this.addDescription('Custom settings panel for testing inheritance.');
+                this.addPlaceholder('[Custom Component]', 'custom-area');
+                
+                // Test event registration
+                this.registerEventHandler('test-event', (e) => {
+                    console.log('Test event received:', e.detail);
+                });
+            }
+        }
+        
+        function runTests() {
+            const results = document.getElementById('test-results');
+            results.innerHTML = '<h2>Test Results</h2>';
+            
+            // Test 1: Base class creation
+            test('ModalSettings creates successfully', () => {
+                const s = new ModalSettings({ modalId: 'test' });
+                return s.getElement() !== null;
+            });
+            
+            // Test 2: ID generation
+            test('Generates correct ID', () => {
+                const s = new ModalSettings({ modalId: 'test-modal' });
+                const id = s.generateId();
+                return id === 'modal-settings-test-modal';
+            });
+            
+            // Test 3: Add description
+            test('Can add description', () => {
+                const s = new ModalSettings({});
+                const desc = s.addDescription('Test description');
+                return desc && desc.textContent.includes('Test description');
+            });
+            
+            // Test 4: Add placeholder
+            test('Can add placeholder', () => {
+                const s = new ModalSettings({});
+                const placeholder = s.addPlaceholder('[Test]', 'test-class');
+                return placeholder && placeholder.className === 'test-class';
+            });
+            
+            // Test 5: Event dispatch
+            test('Can dispatch events', () => {
+                const s = new ModalSettings({ modalId: 'event-test' });
+                let received = false;
+                document.addEventListener('test-dispatch', () => received = true);
+                s.dispatchEvent('test-dispatch');
+                return received;
+            });
+            
+            // Test 6: Event handler registration
+            test('Event handlers register correctly', () => {
+                const s = new ModalSettings({});
+                s.registerEventHandler('test-reg', () => {});
+                return s.eventHandlers.length > 0;
+            });
+            
+            // Test 7: Expand/Collapse
+            test('Expand and collapse work', () => {
+                const s = new ModalSettings({});
+                s.expand();
+                const expanded = s.isExpanded();
+                s.collapse();
+                const collapsed = !s.isExpanded();
+                return expanded && collapsed;
+            });
+            
+            // Test 8: Mount/Unmount
+            test('Mount and unmount work', () => {
+                const s = new ModalSettings({});
+                const parent = document.createElement('div');
+                s.mount(parent);
+                const mounted = parent.querySelector('.collapsible-container') !== null;
+                s.unmount();
+                const unmounted = parent.querySelector('.collapsible-container') === null;
+                return mounted && unmounted;
+            });
+            
+            // Test 9: Inheritance works
+            test('Can extend ModalSettings', () => {
+                const c = new CustomSettings({ modalId: 'custom' });
+                return c instanceof ModalSettings && c.getElement() !== null;
+            });
+            
+            // Test 10: Cleanup on destroy
+            test('Cleanup works properly', () => {
+                const s = new ModalSettings({});
+                s.registerEventHandler('cleanup-test', () => {});
+                const hadHandlers = s.eventHandlers.length > 0;
+                s.destroy();
+                const cleaned = s.eventHandlers.length === 0;
+                return hadHandlers && cleaned;
+            });
+        }
+        
+        function test(name, fn) {
+            const results = document.getElementById('test-results');
+            const result = document.createElement('div');
+            result.className = 'test-result';
+            
+            try {
+                const passed = fn();
+                result.innerHTML = `<span class="${passed ? 'pass' : 'fail'}">${passed ? '✓' : '✗'}</span> ${name}`;
+            } catch (e) {
+                result.innerHTML = `<span class="fail">✗</span> ${name} - Error: ${e.message}`;
+            }
+            
+            results.appendChild(result);
+        }
+        
+        function createBasicSettings() {
+            clearAll();
+            
+            const basic = new ModalSettings({
+                modalId: 'basic-modal',
+                modalTitle: 'Basic Modal',
+                title: 'BASIC SETTINGS'
+            });
+            
+            // Add some content using base methods
+            basic.addDescription('This is a basic settings panel using the base class.');
+            basic.addPlaceholder('[Component Placeholder 1]', 'placeholder-1');
+            basic.addPlaceholder('[Component Placeholder 2]', 'placeholder-2');
+            
+            basic.mount(document.getElementById('demo-area'));
+            basic.expand();
+            settings.push(basic);
+            
+            logEvent('Created basic ModalSettings instance');
+        }
+        
+        function createCustomSettings() {
+            clearAll();
+            
+            const custom = new CustomSettings({
+                modalId: 'custom-modal',
+                modalTitle: 'Custom Modal',
+                title: 'CUSTOM SETTINGS'
+            });
+            
+            custom.mount(document.getElementById('demo-area'));
+            custom.expand();
+            settings.push(custom);
+            
+            logEvent('Created CustomSettings instance (extends ModalSettings)');
+        }
+        
+        function testEventSystem() {
+            if (settings.length === 0) {
+                createBasicSettings();
+            }
+            
+            const s = settings[0];
+            
+            // Register test handler
+            s.registerEventHandler('demo-event', (e) => {
+                logEvent(`Received event: ${JSON.stringify(e.detail)}`);
+            });
+            
+            // Dispatch test event
+            s.dispatchEvent('demo-event', { test: 'data' });
+            
+            logEvent('Event system tested');
+        }
+        
+        function clearAll() {
+            settings.forEach(s => s.destroy());
+            settings = [];
+            document.getElementById('demo-area').innerHTML = '';
+            logEvent('Cleared all settings instances');
+        }
+        
+        function logEvent(message) {
+            const log = document.getElementById('event-log');
+            const time = new Date().toLocaleTimeString();
+            const entry = document.createElement('div');
+            entry.textContent = `[${time}] ${message}`;
+            log.insertBefore(entry, log.firstChild);
+        }
+        
+        // Initialize on load
+        window.addEventListener('load', () => {
+            runTests();
+            createBasicSettings();
+        });
+    </script>
+</body>
+</html>

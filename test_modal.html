@@ -1,0 +1,271 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Modal System Test - ODS v9.2</title>
+    
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Share+Tech+Mono&display=swap" rel="stylesheet">
+    
+    <!-- Styles -->
+    <link rel="stylesheet" href="css/shell.css">
+    <link rel="stylesheet" href="modal/ods.modal.css">
+    
+    <!-- Theme Scripts -->
+    <script src="theme/constants.js"></script>
+    <script src="theme/index.js"></script>
+    
+    <style>
+        .test-controls {
+            padding: 20px;
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+            max-width: 600px;
+            margin: 0 auto;
+        }
+        
+        .test-button {
+            padding: 10px 20px;
+            background: transparent;
+            color: var(--theme-ui, #00FF00);
+            border: 1px solid var(--theme-ui, #00FF00);
+            font-family: var(--theme-font, 'Share Tech Mono', monospace);
+            cursor: pointer;
+            text-transform: uppercase;
+        }
+        
+        .test-button:hover {
+            background: var(--theme-ui, #00FF00);
+            color: var(--theme-bg, #000000);
+        }
+        
+        .test-status {
+            padding: 10px;
+            margin-top: 20px;
+            border: 1px solid var(--theme-ui, #00FF00);
+            font-family: var(--theme-font, 'Share Tech Mono', monospace);
+            color: var(--theme-text, #00FF00);
+            white-space: pre-wrap;
+        }
+        
+        .test-content {
+            padding: 20px;
+            color: var(--theme-text, #00FF00);
+            font-family: var(--theme-font, 'Share Tech Mono', monospace);
+        }
+        
+        .test-content h3 {
+            color: var(--theme-ui, #00FF00);
+            margin-bottom: 10px;
+        }
+    </style>
+</head>
+<body>
+    <div class="test-controls">
+        <h1 style="color: var(--theme-ui, #00FF00); font-family: var(--theme-font, 'Share Tech Mono', monospace);">
+            MODAL SYSTEM TEST SUITE
+        </h1>
+        
+        <button class="test-button" onclick="testModalRegistration()">
+            Test 1: Modal Registration
+        </button>
+        
+        <button class="test-button" onclick="testModalOpening()">
+            Test 2: Open Modal
+        </button>
+        
+        <button class="test-button" onclick="testSecondModal()">
+            Test 3: Multiple Modal Prevention
+        </button>
+        
+        <button class="test-button" onclick="testContentUpdate()">
+            Test 4: Update Modal Content
+        </button>
+        
+        <button class="test-button" onclick="testNonClosableModal()">
+            Test 5: Non-Closable Modal
+        </button>
+        
+        <button class="test-button" onclick="testEventListeners()">
+            Test 6: Event Listeners
+        </button>
+        
+        <button class="test-button" onclick="testLocalStorage()">
+            Test 7: Check localStorage
+        </button>
+        
+        <div class="test-status" id="status">
+            Test Status: Ready
+            Press buttons above to test modal functionality.
+            
+            ESC key test: Open a modal and press ESC
+            Click outside test: Open a modal and click the background
+            Close button test: Open a modal and click × button
+        </div>
+    </div>
+    
+    <!-- Modal System Script -->
+    <script type="module" src="modal/ods.modal.js"></script>
+    
+    <script>
+        // Wait for modal system to initialize
+        setTimeout(() => {
+            window.updateStatus = function(message) {
+                document.getElementById('status').textContent = 
+                    `[${new Date().toLocaleTimeString()}] ${message}`;
+            };
+            
+            // Test 1: Modal Registration
+            window.testModalRegistration = function() {
+                try {
+                    const modal = ODS.modalSystem.register({
+                        id: 'test-modal-1',
+                        title: 'Test Module 1',
+                        moduleId: 'test1',
+                        content: '<div class="test-content"><h3>Test Modal 1</h3><p>This is test content for modal 1.</p><p>The modal is 85% of the viewport.</p></div>'
+                    });
+                    
+                    const isRegistered = ODS.modalSystem.hasModal('test-modal-1');
+                    updateStatus(`Modal Registration: ${isRegistered ? 'PASSED' : 'FAILED'}\nModal registered with ID: test-modal-1`);
+                } catch(e) {
+                    updateStatus(`Modal Registration: ERROR\n${e.message}`);
+                }
+            };
+            
+            // Test 2: Open Modal
+            window.testModalOpening = function() {
+                try {
+                    // Ensure modal is registered
+                    if (!ODS.modalSystem.hasModal('test-modal-1')) {
+                        testModalRegistration();
+                    }
+                    
+                    ODS.modalSystem.open('test-modal-1');
+                    updateStatus('Modal Opening: PASSED\nModal should now be visible.\nTest ESC key, click outside, or × button to close.');
+                } catch(e) {
+                    updateStatus(`Modal Opening: ERROR\n${e.message}`);
+                }
+            };
+            
+            // Test 3: Multiple Modal Prevention
+            window.testSecondModal = function() {
+                try {
+                    // Register second modal
+                    ODS.modalSystem.register({
+                        id: 'test-modal-2',
+                        title: 'Test Module 2',
+                        moduleId: 'test2',
+                        content: '<div class="test-content"><h3>Test Modal 2</h3><p>This modal should NOT open if another is already open.</p></div>'
+                    });
+                    
+                    // Open first modal
+                    if (!ODS.modalSystem.hasModal('test-modal-1')) {
+                        testModalRegistration();
+                    }
+                    ODS.modalSystem.open('test-modal-1');
+                    
+                    // Try to open second modal
+                    setTimeout(() => {
+                        ODS.modalSystem.open('test-modal-2');
+                        updateStatus('Multiple Modal Prevention: TESTING\nAttempted to open second modal.\nIf you see Modal 1 still open, test PASSED.\nCheck console for warning message.');
+                    }, 100);
+                } catch(e) {
+                    updateStatus(`Multiple Modal Prevention: ERROR\n${e.message}`);
+                }
+            };
+            
+            // Test 4: Content Update
+            window.testContentUpdate = function() {
+                try {
+                    if (!ODS.modalSystem.hasModal('test-modal-1')) {
+                        testModalRegistration();
+                    }
+                    
+                    const modal = ODS.modalSystem.getModal('test-modal-1');
+                    const newContent = document.createElement('div');
+                    newContent.className = 'test-content';
+                    newContent.innerHTML = '<h3>UPDATED CONTENT</h3><p>Content has been dynamically updated!</p><p>Timestamp: ' + new Date().toLocaleTimeString() + '</p>';
+                    
+                    modal.setContent(newContent);
+                    ODS.modalSystem.open('test-modal-1');
+                    
+                    updateStatus('Content Update: PASSED\nModal content has been updated with timestamp.');
+                } catch(e) {
+                    updateStatus(`Content Update: ERROR\n${e.message}`);
+                }
+            };
+            
+            // Test 5: Non-Closable Modal
+            window.testNonClosableModal = function() {
+                try {
+                    ODS.modalSystem.register({
+                        id: 'non-closable',
+                        title: 'Non-Closable Modal',
+                        moduleId: 'test-non-closable',
+                        closable: false,
+                        content: '<div class="test-content"><h3>Non-Closable Modal</h3><p>This modal has no × button.</p><p>You can still close it with ESC or clicking outside.</p></div>'
+                    });
+                    
+                    ODS.modalSystem.open('non-closable');
+                    updateStatus('Non-Closable Modal: OPENED\nNote: No × button in header.\nCan still close with ESC or click outside.');
+                } catch(e) {
+                    updateStatus(`Non-Closable Modal: ERROR\n${e.message}`);
+                }
+            };
+            
+            // Test 6: Event Listeners
+            window.testEventListeners = function() {
+                try {
+                    let eventLog = [];
+                    
+                    // Set up listeners
+                    const openHandler = (e) => {
+                        eventLog.push(`OPENED: ${e.detail.modalId} (module: ${e.detail.moduleId})`);
+                    };
+                    const closeHandler = (e) => {
+                        eventLog.push(`CLOSED: ${e.detail.modalId} (duration: ${e.detail.duration}ms)`);
+                        updateStatus(`Event Listeners: PASSED\n${eventLog.join('\n')}`);
+                        // Clean up
+                        document.removeEventListener('modal-opened', openHandler);
+                        document.removeEventListener('modal-closed', closeHandler);
+                    };
+                    
+                    document.addEventListener('modal-opened', openHandler);
+                    document.addEventListener('modal-closed', closeHandler);
+                    
+                    // Register modal with callbacks
+                    ODS.modalSystem.register({
+                        id: 'event-test',
+                        title: 'Event Test Modal',
+                        moduleId: 'test-events',
+                        content: '<div class="test-content"><h3>Event Test</h3><p>Close this modal to see event details.</p></div>',
+                        onOpen: () => eventLog.push('onOpen callback fired'),
+                        onClose: () => eventLog.push('onClose callback fired')
+                    });
+                    
+                    ODS.modalSystem.open('event-test');
+                    updateStatus('Event Listeners: TESTING\nClose the modal to see event details.');
+                } catch(e) {
+                    updateStatus(`Event Listeners: ERROR\n${e.message}`);
+                }
+            };
+            
+            // Test 7: localStorage
+            window.testLocalStorage = function() {
+                try {
+                    const version = localStorage.getItem('ods-modal-version');
+                    const settings = localStorage.getItem('modal-settings-state');
+                    
+                    updateStatus(`localStorage Check: PASSED\nVersion: ${version}\nSettings: ${settings}`);
+                } catch(e) {
+                    updateStatus(`localStorage Check: ERROR\n${e.message}`);
+                }
+            };
+            
+            updateStatus('Modal System Loaded\nReady for testing.');
+        }, 500);
+    </script>
+</body>
+</html>

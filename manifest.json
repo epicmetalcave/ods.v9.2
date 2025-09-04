@@ -1,0 +1,25 @@
+{
+    "name": "ODS - Operation Deployment System",
+    "short_name": "ODS",
+    "version": "9.2",
+    "description": "Local-first task management system",
+    "start_url": "/",
+    "display": "standalone",
+    "orientation": "any",
+    "background_color": "#000000",
+    "theme_color": "#000000",
+    "icons": [
+        {
+            "src": "icons/icon-192.png",
+            "sizes": "192x192",
+            "type": "image/png",
+            "purpose": "any maskable"
+        },
+        {
+            "src": "icons/icon-512.png",
+            "sizes": "512x512",
+            "type": "image/png",
+            "purpose": "any maskable"
+        }
+    ]
+}

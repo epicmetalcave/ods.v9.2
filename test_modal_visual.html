@@ -1,0 +1,382 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Modal Visual Polish Test - ODS v9.2 Batch 2</title>
+    
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Share+Tech+Mono&display=swap" rel="stylesheet">
+    
+    <!-- Styles -->
+    <link rel="stylesheet" href="css/shell.css">
+    <link rel="stylesheet" href="modal/ods.modal.css">
+    
+    <!-- Theme Scripts -->
+    <script src="theme/constants.js"></script>
+    <script src="theme/index.js"></script>
+    
+    <style>
+        .test-suite {
+            padding: 20px;
+            max-width: 1200px;
+            margin: 0 auto;
+            font-family: var(--theme-font, 'Share Tech Mono', monospace);
+        }
+        
+        .test-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 15px;
+            margin-bottom: 20px;
+        }
+        
+        .test-button {
+            padding: 12px 16px;
+            background: transparent;
+            color: var(--theme-ui, #00FF00);
+            border: 1px solid var(--theme-ui, #00FF00);
+            font-family: var(--theme-font, 'Share Tech Mono', monospace);
+            cursor: pointer;
+            text-transform: uppercase;
+            font-size: 12px;
+        }
+        
+        .test-button:hover {
+            background: var(--theme-ui, #00FF00);
+            color: var(--theme-bg, #000000);
+        }
+        
+        .test-button:focus-visible {
+            outline: 2px solid var(--theme-ui, #00FF00);
+            outline-offset: 2px;
+        }
+        
+        .visual-test-content {
+            padding: 20px;
+        }
+        
+        .visual-test-content h1 {
+            color: var(--theme-ui, #00FF00);
+            margin-bottom: 20px;
+        }
+        
+        .test-section {
+            margin-bottom: 30px;
+        }
+        
+        .test-section h2 {
+            color: var(--theme-ui, #00FF00);
+            border-bottom: 1px solid var(--theme-ui, #00FF00);
+            padding-bottom: 10px;
+            margin-bottom: 15px;
+        }
+        
+        .long-content {
+            height: 2000px;
+            background: repeating-linear-gradient(
+                0deg,
+                transparent,
+                transparent 20px,
+                rgba(0, 255, 0, 0.05) 20px,
+                rgba(0, 255, 0, 0.05) 40px
+            );
+        }
+        
+        .checklist {
+            list-style: none;
+            padding: 0;
+        }
+        
+        .checklist li {
+            padding: 8px 0;
+            border-bottom: 1px solid rgba(0, 255, 0, 0.2);
+        }
+        
+        .checklist li:before {
+            content: "▸ ";
+            color: var(--theme-ui, #00FF00);
+        }
+    </style>
+</head>
+<body>
+    <div class="test-suite">
+        <h1 style="color: var(--theme-ui, #00FF00); text-align: center; margin-bottom: 30px;">
+            MODAL SYSTEM VISUAL POLISH TEST - BATCH 2
+        </h1>
+        
+        <div class="test-grid">
+            <button class="test-button" onclick="testTypography()">
+                Typography Test
+            </button>
+            
+            <button class="test-button" onclick="testLongTitle()">
+                Long Title Ellipsis
+            </button>
+            
+            <button class="test-button" onclick="testScrollContent()">
+                Scrollbar Styling
+            </button>
+            
+            <button class="test-button" onclick="testEmptyFooter()">
+                Empty Footer Test
+            </button>
+            
+            <button class="test-button" onclick="testContentFooter()">
+                Footer With Content
+            </button>
+            
+            <button class="test-button" onclick="testFocusStates()">
+                Focus States (Tab)
+            </button>
+            
+            <button class="test-button" onclick="testNonClosable()">
+                Non-Closable Visual
+            </button>
+            
+            <button class="test-button" onclick="testMinimumSize()">
+                Minimum Size Test
+            </button>
+            
+            <button class="test-button" onclick="testThemeCompliance()">
+                Theme Variable Check
+            </button>
+        </div>
+        
+        <div style="border: 1px solid var(--theme-ui, #00FF00); padding: 15px; margin-top: 20px;">
+            <h3 style="color: var(--theme-ui, #00FF00); margin-bottom: 10px;">Visual Checklist:</h3>
+            <ul class="checklist">
+                <li>✓ Isolation prevents overlay bleed-through</li>
+                <li>✓ Title truncates with ellipsis on long text</li>
+                <li>✓ Smooth scrolling in content area</li>
+                <li>✓ Custom scrollbar matches theme</li>
+                <li>✓ Focus states visible on Tab navigation</li>
+                <li>✓ No focus rings for mouse clicks</li>
+                <li>✓ Typography hierarchy with proper sizing</li>
+                <li>✓ Responsive sizing maintains 85% viewport</li>
+                <li>✓ Minimum dimensions on small screens</li>
+                <li>✓ Print styles hide modal</li>
+                <li>✓ High contrast mode support</li>
+                <li>✓ Reduced motion preference respected</li>
+            </ul>
+        </div>
+    </div>
+    
+    <!-- Modal System Script -->
+    <script type="module" src="modal/ods.modal.js"></script>
+    
+    <script>
+        // Wait for modal system
+        setTimeout(() => {
+            // Typography Test
+            window.testTypography = function() {
+                const content = `
+                    <div class="visual-test-content">
+                        <h1>H1: Main Heading (1.75em)</h1>
+                        <h2>H2: Section Heading (1.5em)</h2>
+                        <h3>H3: Subsection Heading (1.25em)</h3>
+                        <h4>H4: Minor Heading</h4>
+                        <p>This is a paragraph with normal text. It demonstrates the line-height of 1.5 and margin-bottom of 1em. The text should be rendered with antialiased font smoothing for better readability.</p>
+                        <p>Second paragraph to show spacing between paragraphs. All text uses the theme font family and color variables.</p>
+                        <h3>Text Selection Test</h3>
+                        <p>Try selecting this text - it should be selectable only within the content area. The header and container should prevent text selection.</p>
+                    </div>
+                `;
+                
+                ODS.modalSystem.register({
+                    id: 'typography-test',
+                    title: 'Typography & Text Rendering',
+                    moduleId: 'visual-typography',
+                    content: content
+                });
+                
+                ODS.modalSystem.open('typography-test');
+            };
+            
+            // Long Title Test
+            window.testLongTitle = function() {
+                ODS.modalSystem.register({
+                    id: 'long-title',
+                    title: 'This is an extremely long modal title that should truncate with ellipsis when it exceeds the available space in the header area',
+                    moduleId: 'visual-ellipsis',
+                    content: '<div class="visual-test-content"><h2>Title Ellipsis Test</h2><p>Check the header - the long title should show ellipsis (...) at the end.</p><p>The close button should remain visible and not be pushed out.</p></div>'
+                });
+                
+                ODS.modalSystem.open('long-title');
+            };
+            
+            // Scroll Content Test
+            window.testScrollContent = function() {
+                const content = `
+                    <div class="visual-test-content">
+                        <h2>Scrollbar Styling Test</h2>
+                        <p>This modal contains long content to test scrollbar styling.</p>
+                        <p>Features to verify:</p>
+                        <ul class="checklist">
+                            <li>Custom webkit scrollbar (8px width)</li>
+                            <li>Theme color for scrollbar thumb</li>
+                            <li>Border on scrollbar track</li>
+                            <li>Smooth scrolling behavior</li>
+                            <li>Firefox thin scrollbar support</li>
+                        </ul>
+                        <div class="long-content">
+                            <p style="padding-top: 20px;">Scroll down to see more content...</p>
+                            <p style="position: absolute; bottom: 20px;">You've reached the bottom!</p>
+                        </div>
+                    </div>
+                `;
+                
+                ODS.modalSystem.register({
+                    id: 'scroll-test',
+                    title: 'Scrollbar Visual Test',
+                    moduleId: 'visual-scroll',
+                    content: content
+                });
+                
+                ODS.modalSystem.open('scroll-test');
+            };
+            
+            // Empty Footer Test
+            window.testEmptyFooter = function() {
+                ODS.modalSystem.register({
+                    id: 'empty-footer',
+                    title: 'Empty Footer Visual',
+                    moduleId: 'visual-footer-empty',
+                    content: '<div class="visual-test-content"><h2>Empty Footer Test</h2><p>The footer below should have minimal height (0) with just a border.</p><p>This is the default state before Module Settings are added in Batch 3.</p></div>'
+                });
+                
+                ODS.modalSystem.open('empty-footer');
+            };
+            
+            // Footer With Content Test
+            window.testContentFooter = function() {
+                const modal = ODS.modalSystem.register({
+                    id: 'content-footer',
+                    title: 'Footer With Content',
+                    moduleId: 'visual-footer-content',
+                    content: '<div class="visual-test-content"><h2>Footer Content Test</h2><p>The footer below has been populated with content to show the :not(:empty) styling.</p></div>'
+                });
+                
+                // Manually add content to footer for testing
+                setTimeout(() => {
+                    if (modal.footerElement) {
+                        modal.footerElement.innerHTML = '<div style="color: var(--theme-ui, #00FF00);">Module Settings will appear here (Batch 3)</div>';
+                    }
+                }, 100);
+                
+                ODS.modalSystem.open('content-footer');
+            };
+            
+            // Focus States Test
+            window.testFocusStates = function() {
+                ODS.modalSystem.register({
+                    id: 'focus-test',
+                    title: 'Focus States Test',
+                    moduleId: 'visual-focus',
+                    content: `
+                        <div class="visual-test-content">
+                            <h2>Keyboard Navigation Test</h2>
+                            <p>Press TAB to navigate:</p>
+                            <ul class="checklist">
+                                <li>Close button should show focus outline</li>
+                                <li>Focus outline: 2px solid theme-ui color</li>
+                                <li>2px offset from element</li>
+                                <li>Click with mouse: no focus ring</li>
+                                <li>Tab navigation: focus ring visible</li>
+                            </ul>
+                            <p>This tests the :focus-visible pseudo-class for better accessibility.</p>
+                        </div>
+                    `
+                });
+                
+                ODS.modalSystem.open('focus-test');
+            };
+            
+            // Non-Closable Test
+            window.testNonClosable = function() {
+                ODS.modalSystem.register({
+                    id: 'non-closable-visual',
+                    title: 'Non-Closable Modal',
+                    moduleId: 'visual-non-closable',
+                    closable: false,
+                    content: '<div class="visual-test-content"><h2>Non-Closable Visual Test</h2><p>Notice: No × button in the header.</p><p>The title should expand to use the full header width.</p><p>You can still close with ESC or click outside.</p></div>'
+                });
+                
+                ODS.modalSystem.open('non-closable-visual');
+            };
+            
+            // Minimum Size Test
+            window.testMinimumSize = function() {
+                ODS.modalSystem.register({
+                    id: 'min-size',
+                    title: 'Minimum Size Test',
+                    moduleId: 'visual-min-size',
+                    content: `
+                        <div class="visual-test-content">
+                            <h2>Responsive Minimum Dimensions</h2>
+                            <p>CSS enforces minimum dimensions:</p>
+                            <ul class="checklist">
+                                <li>Min width: 280px (mobile)</li>
+                                <li>Min height: 400px (mobile)</li>
+                                <li>Landscape: min-height 300px</li>
+                            </ul>
+                            <p>Resize browser to test responsive breakpoints.</p>
+                        </div>
+                    `
+                });
+                
+                ODS.modalSystem.open('min-size');
+            };
+            
+            // Theme Compliance Test
+            window.testThemeCompliance = function() {
+                const content = `
+                    <div class="visual-test-content">
+                        <h2>Theme Variable Compliance</h2>
+                        <p>All colors should use CSS variables:</p>
+                        <table style="width: 100%; margin: 20px 0;">
+                            <tr>
+                                <td style="padding: 10px; border: 1px solid var(--theme-ui, #00FF00);">
+                                    <strong>Background:</strong><br>
+                                    var(--theme-bg, #000000)
+                                </td>
+                            </tr>
+                            <tr>
+                                <td style="padding: 10px; border: 1px solid var(--theme-ui, #00FF00);">
+                                    <strong>Text:</strong><br>
+                                    var(--theme-text, #00FF00)
+                                </td>
+                            </tr>
+                            <tr>
+                                <td style="padding: 10px; border: 1px solid var(--theme-ui, #00FF00);">
+                                    <strong>UI Elements:</strong><br>
+                                    var(--theme-ui, #00FF00)
+                                </td>
+                            </tr>
+                            <tr>
+                                <td style="padding: 10px; border: 1px solid var(--theme-ui, #00FF00);">
+                                    <strong>Font:</strong><br>
+                                    var(--theme-font, 'Share Tech Mono')
+                                </td>
+                            </tr>
+                        </table>
+                        <p>No hardcoded colors should exist in the CSS.</p>
+                    </div>
+                `;
+                
+                ODS.modalSystem.register({
+                    id: 'theme-test',
+                    title: 'Theme Compliance Check',
+                    moduleId: 'visual-theme',
+                    content: content
+                });
+                
+                ODS.modalSystem.open('theme-test');
+            };
+            
+            console.log('Visual Polish Test Suite Ready');
+            console.log('Test keyboard navigation, responsive behavior, and visual refinements');
+        }, 500);
+    </script>
+</body>
+</html>

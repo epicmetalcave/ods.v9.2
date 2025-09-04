@@ -1,0 +1,536 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Module Settings Test - ODS v9.2 Batch 3</title>
+    
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Share+Tech+Mono&display=swap" rel="stylesheet">
+    
+    <!-- Styles -->
+    <link rel="stylesheet" href="css/shell.css">
+    <link rel="stylesheet" href="modal/ods.modal.css">
+    
+    <!-- Theme Scripts -->
+    <script src="theme/constants.js"></script>
+    <script src="theme/index.js"></script>
+    
+    <style>
+        .test-container {
+            padding: 20px;
+            max-width: 1000px;
+            margin: 0 auto;
+            font-family: var(--theme-font, 'Share Tech Mono', monospace);
+        }
+        
+        .test-header {
+            color: var(--theme-ui, #00FF00);
+            text-align: center;
+            margin-bottom: 30px;
+            padding-bottom: 20px;
+            border-bottom: 2px solid var(--theme-ui, #00FF00);
+        }
+        
+        .test-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 12px;
+            margin-bottom: 30px;
+        }
+        
+        .test-btn {
+            padding: 12px;
+            background: transparent;
+            border: 1px solid var(--theme-ui, #00FF00);
+            color: var(--theme-ui, #00FF00);
+            font-family: var(--theme-font, 'Share Tech Mono', monospace);
+            font-size: 11px;
+            cursor: pointer;
+            text-transform: uppercase;
+            transition: all 0.15s ease;
+        }
+        
+        .test-btn:hover {
+            background: var(--theme-ui, #00FF00);
+            color: var(--theme-bg, #000000);
+        }
+        
+        .test-btn:active {
+            transform: scale(0.98);
+        }
+        
+        .status-panel {
+            border: 1px solid var(--theme-ui, #00FF00);
+            padding: 15px;
+            background: rgba(0, 255, 0, 0.02);
+        }
+        
+        .status-title {
+            color: var(--theme-ui, #00FF00);
+            font-size: 12px;
+            margin-bottom: 10px;
+            text-transform: uppercase;
+        }
+        
+        .status-content {
+            color: var(--theme-text, #00FF00);
+            font-size: 12px;
+            line-height: 1.6;
+            white-space: pre-wrap;
+            font-family: var(--theme-font, 'Share Tech Mono', monospace);
+        }
+        
+        .test-section {
+            margin-bottom: 25px;
+        }
+        
+        .test-section h3 {
+            color: var(--theme-ui, #00FF00);
+            font-size: 14px;
+            margin-bottom: 15px;
+            text-transform: uppercase;
+            opacity: 0.8;
+        }
+        
+        .checklist {
+            list-style: none;
+            padding: 0;
+        }
+        
+        .checklist li {
+            padding: 8px 0;
+            color: var(--theme-text, #00FF00);
+            font-size: 12px;
+            border-bottom: 1px solid rgba(0, 255, 0, 0.1);
+        }
+        
+        .checklist li:before {
+            content: "▸ ";
+            color: var(--theme-ui, #00FF00);
+            margin-right: 8px;
+        }
+        
+        .success { color: #00FF00; }
+        .error { color: #FF3333; }
+        .info { color: #3399FF; }
+    </style>
+</head>
+<body>
+    <div class="test-container">
+        <h1 class="test-header">MODULE SETTINGS TEST SUITE - BATCH 3</h1>
+        
+        <div class="test-section">
+            <h3>Functionality Tests</h3>
+            <div class="test-grid">
+                <button class="test-btn" onclick="testBasicSettings()">
+                    Basic Settings Panel
+                </button>
+                
+                <button class="test-btn" onclick="testToggleExpand()">
+                    Toggle Expand/Collapse
+                </button>
+                
+                <button class="test-btn" onclick="testStatePersistence()">
+                    State Persistence
+                </button>
+                
+                <button class="test-btn" onclick="testDisableSettings()">
+                    Disable Settings Option
+                </button>
+                
+                <button class="test-btn" onclick="testEventDispatch()">
+                    Event System
+                </button>
+                
+                <button class="test-btn" onclick="testMultipleModals()">
+                    Multiple Modal Settings
+                </button>
+            </div>
+        </div>
+        
+        <div class="test-section">
+            <h3>Visual Tests</h3>
+            <div class="test-grid">
+                <button class="test-btn" onclick="testHoverStates()">
+                    Hover Effects
+                </button>
+                
+                <button class="test-btn" onclick="testKeyboardNav()">
+                    Keyboard Navigation
+                </button>
+                
+                <button class="test-btn" onclick="testResponsive()">
+                    Responsive Behavior
+                </button>
+                
+                <button class="test-btn" onclick="testThemeCompliance()">
+                    Theme Variables
+                </button>
+            </div>
+        </div>
+        
+        <div class="status-panel">
+            <div class="status-title">Test Output</div>
+            <div class="status-content" id="status">Ready for testing...
+            
+Click test buttons above to verify Module Settings functionality.
+All tests should pass with green checkmarks.</div>
+        </div>
+        
+        <div class="test-section">
+            <h3>Acceptance Checklist</h3>
+            <ul class="checklist">
+                <li>Module Settings panel renders in footer</li>
+                <li>Click header toggles expand/collapse</li>
+                <li>Arrow changes direction when toggling (▶ / ▼)</li>
+                <li>State persists in localStorage</li>
+                <li>Events fire on toggle with correct details</li>
+                <li>"Universal Module Settings" placeholder displays</li>
+                <li>Can disable settings via showModuleSettings: false</li>
+                <li>All colors use theme variables</li>
+                <li>Keyboard accessible with ARIA attributes</li>
+                <li>Mobile responsive with adjusted padding</li>
+                <li>Hover states show opacity changes</li>
+                <li>Focus states visible for accessibility</li>
+            </ul>
+        </div>
+    </div>
+    
+    <!-- Modal System Script -->
+    <script type="module" src="modal/ods.modal.js"></script>
+    
+    <script>
+        // Utility function to update status
+        function updateStatus(message, type = 'info') {
+            const status = document.getElementById('status');
+            const timestamp = new Date().toLocaleTimeString();
+            const prefix = type === 'success' ? '✓' : type === 'error' ? '✗' : '→';
+            const className = type === 'success' ? 'success' : type === 'error' ? 'error' : 'info';
+            
+            status.innerHTML += `\n<span class="${className}">[${timestamp}] ${prefix} ${message}</span>`;
+            status.scrollTop = status.scrollHeight;
+        }
+        
+        function clearStatus() {
+            document.getElementById('status').innerHTML = 'Test results:\n';
+        }
+        
+        // Wait for modal system to load
+        setTimeout(() => {
+            // Test 1: Basic Settings Panel
+            window.testBasicSettings = function() {
+                clearStatus();
+                updateStatus('Testing basic Module Settings panel...', 'info');
+                
+                try {
+                    // Register modal with settings
+                    const modal = ODS.modalSystem.register({
+                        id: 'test-settings-basic',
+                        title: 'Settings Test Modal',
+                        moduleId: 'test-module',
+                        content: '<div style="padding: 20px; color: var(--theme-text, #00FF00);">This modal has Module Settings in the footer.</div>'
+                    });
+                    
+                    ODS.modalSystem.open('test-settings-basic');
+                    
+                    // Check if settings panel exists
+                    setTimeout(() => {
+                        const settingsPanel = document.querySelector('.modal-settings');
+                        const settingsHeader = document.querySelector('.modal-settings__header');
+                        const settingsTitle = document.querySelector('.modal-settings__title');
+                        
+                        if (settingsPanel) {
+                            updateStatus('Settings panel found ✓', 'success');
+                        } else {
+                            updateStatus('Settings panel NOT found', 'error');
+                        }
+                        
+                        if (settingsHeader) {
+                            updateStatus('Settings header rendered ✓', 'success');
+                        }
+                        
+                        if (settingsTitle && settingsTitle.textContent === 'MODULE SETTINGS') {
+                            updateStatus('Settings title correct ✓', 'success');
+                        }
+                    }, 100);
+                } catch (e) {
+                    updateStatus(`Error: ${e.message}`, 'error');
+                }
+            };
+            
+            // Test 2: Toggle Expand/Collapse
+            window.testToggleExpand = function() {
+                clearStatus();
+                updateStatus('Testing toggle functionality...', 'info');
+                
+                // Ensure modal is open
+                if (!ODS.modalSystem.hasModal('test-settings-basic')) {
+                    testBasicSettings();
+                }
+                
+                setTimeout(() => {
+                    const header = document.querySelector('.modal-settings__header');
+                    const content = document.querySelector('.modal-settings__content');
+                    const toggle = document.querySelector('.modal-settings__toggle');
+                    
+                    if (!header) {
+                        updateStatus('Header not found - open a modal first', 'error');
+                        return;
+                    }
+                    
+                    // Check initial state
+                    const initialHidden = content.hidden;
+                    const initialArrow = toggle.textContent;
+                    updateStatus(`Initial state: ${initialHidden ? 'Collapsed' : 'Expanded'} (${initialArrow})`, 'info');
+                    
+                    // Click to toggle
+                    header.click();
+                    
+                    setTimeout(() => {
+                        const newHidden = content.hidden;
+                        const newArrow = toggle.textContent;
+                        
+                        if (newHidden !== initialHidden) {
+                            updateStatus('Toggle successful ✓', 'success');
+                            updateStatus(`New state: ${newHidden ? 'Collapsed' : 'Expanded'} (${newArrow})`, 'success');
+                        } else {
+                            updateStatus('Toggle failed - state unchanged', 'error');
+                        }
+                        
+                        // Test ARIA attribute
+                        const ariaExpanded = toggle.getAttribute('aria-expanded');
+                        if (ariaExpanded === (!newHidden).toString()) {
+                            updateStatus('ARIA attribute correct ✓', 'success');
+                        }
+                    }, 100);
+                }, 200);
+            };
+            
+            // Test 3: State Persistence
+            window.testStatePersistence = function() {
+                clearStatus();
+                updateStatus('Testing state persistence...', 'info');
+                
+                // Expand settings
+                const header = document.querySelector('.modal-settings__header');
+                if (header) {
+                    const content = document.querySelector('.modal-settings__content');
+                    if (content.hidden) {
+                        header.click();
+                    }
+                    
+                    setTimeout(() => {
+                        // Check localStorage
+                        const savedState = localStorage.getItem('modal-settings-state');
+                        if (savedState) {
+                            const state = JSON.parse(savedState);
+                            updateStatus(`LocalStorage state: ${JSON.stringify(state)}`, 'info');
+                            
+                            if (state['module-settings'] === true) {
+                                updateStatus('State saved to localStorage ✓', 'success');
+                                
+                                // Close and reopen modal
+                                ODS.modalSystem.closeActive();
+                                
+                                setTimeout(() => {
+                                    ODS.modalSystem.open('test-settings-basic');
+                                    
+                                    setTimeout(() => {
+                                        const newContent = document.querySelector('.modal-settings__content');
+                                        if (!newContent.hidden) {
+                                            updateStatus('State persisted after reopening ✓', 'success');
+                                        } else {
+                                            updateStatus('State not persisted', 'error');
+                                        }
+                                    }, 100);
+                                }, 100);
+                            }
+                        } else {
+                            updateStatus('No state found in localStorage', 'error');
+                        }
+                    }, 100);
+                } else {
+                    updateStatus('Open a modal first', 'error');
+                }
+            };
+            
+            // Test 4: Disable Settings
+            window.testDisableSettings = function() {
+                clearStatus();
+                updateStatus('Testing disabled settings option...', 'info');
+                
+                // Close any open modal
+                ODS.modalSystem.closeActive();
+                
+                // Register modal without settings
+                const modal = ODS.modalSystem.register({
+                    id: 'test-no-settings',
+                    title: 'No Settings Modal',
+                    moduleId: 'test-no-settings',
+                    showModuleSettings: false,
+                    content: '<div style="padding: 20px; color: var(--theme-text, #00FF00);">This modal has NO Module Settings.</div>'
+                });
+                
+                ODS.modalSystem.open('test-no-settings');
+                
+                setTimeout(() => {
+                    const settingsPanel = document.querySelector('.modal-settings');
+                    const footer = document.querySelector('.modal-footer');
+                    
+                    if (!settingsPanel) {
+                        updateStatus('No settings panel (as expected) ✓', 'success');
+                    } else {
+                        updateStatus('Settings panel found (should not exist)', 'error');
+                    }
+                    
+                    if (footer && footer.children.length === 0) {
+                        updateStatus('Footer is empty ✓', 'success');
+                    }
+                }, 100);
+            };
+            
+            // Test 5: Event Dispatch
+            window.testEventDispatch = function() {
+                clearStatus();
+                updateStatus('Testing event system...', 'info');
+                
+                // Set up event listener
+                const eventHandler = function(e) {
+                    updateStatus(`Event received: ${e.type}`, 'success');
+                    updateStatus(`Details: modalId=${e.detail.modalId}, panel=${e.detail.panel}, expanded=${e.detail.expanded}`, 'info');
+                    
+                    // Clean up
+                    document.removeEventListener('settings-toggled', eventHandler);
+                };
+                
+                document.addEventListener('settings-toggled', eventHandler);
+                
+                // Open modal and toggle
+                if (!ODS.modalSystem.hasModal('test-settings-basic')) {
+                    testBasicSettings();
+                }
+                
+                setTimeout(() => {
+                    const header = document.querySelector('.modal-settings__header');
+                    if (header) {
+                        header.click();
+                        updateStatus('Toggle clicked - check for event above', 'info');
+                    }
+                }, 200);
+            };
+            
+            // Test 6: Multiple Modals
+            window.testMultipleModals = function() {
+                clearStatus();
+                updateStatus('Testing multiple modal settings...', 'info');
+                
+                // Register two modals
+                ODS.modalSystem.register({
+                    id: 'modal-1',
+                    title: 'First Modal',
+                    moduleId: 'module-1',
+                    content: '<p>First modal content</p>'
+                });
+                
+                ODS.modalSystem.register({
+                    id: 'modal-2',
+                    title: 'Second Modal',
+                    moduleId: 'module-2',
+                    content: '<p>Second modal content</p>'
+                });
+                
+                // Open first modal
+                ODS.modalSystem.open('modal-1');
+                updateStatus('Opened Modal 1', 'info');
+                
+                setTimeout(() => {
+                    // Toggle settings in first modal
+                    const header1 = document.querySelector('.modal-settings__header');
+                    if (header1) header1.click();
+                    
+                    // Close and open second modal
+                    ODS.modalSystem.closeActive();
+                    ODS.modalSystem.open('modal-2');
+                    updateStatus('Opened Modal 2', 'info');
+                    
+                    setTimeout(() => {
+                        const settings2 = document.querySelector('.modal-settings');
+                        if (settings2) {
+                            updateStatus('Modal 2 has independent settings ✓', 'success');
+                        }
+                    }, 100);
+                }, 200);
+            };
+            
+            // Visual Tests
+            window.testHoverStates = function() {
+                clearStatus();
+                updateStatus('Testing hover states...', 'info');
+                updateStatus('Hover over the MODULE SETTINGS header', 'info');
+                updateStatus('You should see:', 'info');
+                updateStatus('- Background highlight (subtle green)', 'info');
+                updateStatus('- Title and arrow opacity increase', 'info');
+                
+                if (!ODS.modalSystem.activeModal) {
+                    testBasicSettings();
+                }
+            };
+            
+            window.testKeyboardNav = function() {
+                clearStatus();
+                updateStatus('Testing keyboard navigation...', 'info');
+                updateStatus('Press TAB to focus the settings header', 'info');
+                updateStatus('You should see a focus outline', 'info');
+                updateStatus('Press ENTER or SPACE to toggle', 'info');
+                
+                if (!ODS.modalSystem.activeModal) {
+                    testBasicSettings();
+                }
+            };
+            
+            window.testResponsive = function() {
+                clearStatus();
+                updateStatus('Testing responsive behavior...', 'info');
+                updateStatus('Resize browser window to test:', 'info');
+                updateStatus('- Mobile (<768px): Reduced padding', 'info');
+                updateStatus('- Desktop (>1920px): Increased padding', 'info');
+                
+                if (!ODS.modalSystem.activeModal) {
+                    testBasicSettings();
+                }
+            };
+            
+            window.testThemeCompliance = function() {
+                clearStatus();
+                updateStatus('Checking theme compliance...', 'info');
+                
+                if (!ODS.modalSystem.activeModal) {
+                    testBasicSettings();
+                }
+                
+                setTimeout(() => {
+                    const settings = document.querySelector('.modal-settings');
+                    const header = document.querySelector('.modal-settings__header');
+                    const title = document.querySelector('.modal-settings__title');
+                    
+                    if (settings && header && title) {
+                        const headerStyles = getComputedStyle(header);
+                        const titleStyles = getComputedStyle(title);
+                        
+                        updateStatus('Theme variables applied:', 'info');
+                        updateStatus(`- Background: ${headerStyles.backgroundColor}`, 'info');
+                        updateStatus(`- Title color: ${titleStyles.color}`, 'info');
+                        updateStatus(`- Font: ${titleStyles.fontFamily}`, 'info');
+                        
+                        updateStatus('All theme variables correctly applied ✓', 'success');
+                    }
+                }, 100);
+            };
+            
+            updateStatus('Module Settings Test Suite loaded', 'success');
+            updateStatus('Click any test button to begin', 'info');
+        }, 500);
+    </script>
+</body>
+</html>

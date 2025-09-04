@@ -1,0 +1,63 @@
+/* 
+ * ODS Shell v9.2.1 Core Styles
+ * Uses CSS variables from ops.theme v2
+ * Fallback values ensure compatibility
+ */
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+html, body {
+    width: 100%;
+    height: 100%;
+    overflow: hidden;
+    background: var(--theme-bg, #000000);
+    color: var(--theme-text, #00FF00);
+    font-family: var(--theme-font, 'Courier New', monospace);
+    font-size: 14px;
+    line-height: 1.4;
+}
+
+#shell {
+    width: 100%;
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+}
+
+#shortcut-bar-mount {
+    height: 8%;
+    min-height: 40px;
+    background: var(--theme-bg, #000000);
+    border-bottom: 1px solid var(--theme-ui, #00FF00);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+#dashboard-mount {
+    height: 92%;
+    background: var(--theme-bg, #000000);
+    position: relative;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+/* Remove CSS pseudo-content since JS will handle it */
+#shortcut-bar-mount::after,
+#dashboard-mount::after {
+    display: none;
+}
+
+/* Placeholder styles for JavaScript-inserted content */
+.placeholder {
+    padding: 20px;
+    text-align: center;
+    opacity: 0.5;
+    font-size: 12px;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+}

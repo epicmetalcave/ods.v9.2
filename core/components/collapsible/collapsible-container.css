@@ -1,0 +1,99 @@
+/* Collapsible Container Component - ODS Theme Compliant */
+
+.collapsible-container {
+  position: relative;
+  background: var(--theme-bg, #000000);
+  border: 1px solid var(--theme-ui, #00FF00);
+  margin: 10px 0;
+}
+
+/* Header - Always visible */
+.collapsible-container__header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 8px 16px;
+  cursor: pointer;
+  user-select: none;
+  background: var(--theme-bg, #000000);
+  position: relative;
+}
+
+/* Header border only when expanded */
+.collapsible-container__header[data-expanded="true"] {
+  border-bottom: 1px solid var(--theme-ui, #00FF00);
+}
+
+/* Title */
+.collapsible-container__title {
+  color: var(--theme-text, #00FF00);
+  font-family: var(--theme-font, 'Share Tech Mono', monospace);
+  font-size: 11px;
+  font-weight: normal;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  opacity: 0.7;
+}
+
+/* Toggle arrow button */
+.collapsible-container__toggle {
+  background: transparent;
+  border: none;
+  color: var(--theme-ui, #00FF00);
+  font-family: var(--theme-font, 'Share Tech Mono', monospace);
+  font-size: 14px;
+  cursor: pointer;
+  padding: 0;
+  width: 20px;
+  height: 20px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  opacity: 0.7;
+  outline: none;
+  /* Small rotation for arrow - only animation */
+  transition: transform 0.15s ease;
+}
+
+/* Content area - No animation, instant show/hide */
+.collapsible-container__content {
+  padding: 8px;
+  background: var(--theme-bg, #000000);
+  color: var(--theme-text, #00FF00);
+  font-family: var(--theme-font, 'Share Tech Mono', monospace);
+  font-size: 12px;
+  line-height: 1.6;
+  /* No transition - instant display change via JS */
+}
+
+/* Hover states */
+.collapsible-container__header:hover {
+  background: rgba(0, 255, 0, 0.05);
+}
+
+.collapsible-container__header:hover .collapsible-container__title,
+.collapsible-container__header:hover .collapsible-container__toggle {
+  opacity: 1;
+}
+
+/* Active state */
+.collapsible-container__header:active {
+  background: rgba(0, 255, 0, 0.1);
+}
+
+/* Focus visible for keyboard navigation */
+.collapsible-container__toggle:focus-visible {
+  outline: 1px solid var(--theme-ui, #00FF00);
+  outline-offset: 2px;
+  opacity: 1;
+}
+
+/* Disabled state (if needed) */
+.collapsible-container--disabled .collapsible-container__header {
+  cursor: not-allowed;
+  opacity: 0.3;
+}
+
+.collapsible-container--disabled .collapsible-container__header:hover {
+  background: transparent;
+}

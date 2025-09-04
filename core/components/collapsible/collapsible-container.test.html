@@ -1,0 +1,327 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CollapsibleContainer Component Test</title>
+    <style>
+        :root {
+            --theme-bg: #000000;
+            --theme-text: #00FF00;
+            --theme-ui: #00FF00;
+            --theme-font: 'Courier New', monospace;
+        }
+        
+        body {
+            background: var(--theme-bg);
+            color: var(--theme-text);
+            font-family: var(--theme-font);
+            padding: 20px;
+            margin: 0;
+        }
+        
+        h1, h2 {
+            border-bottom: 1px solid var(--theme-ui);
+            padding-bottom: 10px;
+        }
+        
+        .test-controls {
+            margin: 20px 0;
+            padding: 20px;
+            border: 1px solid var(--theme-ui);
+        }
+        
+        button {
+            background: var(--theme-bg);
+            color: var(--theme-ui);
+            border: 1px solid var(--theme-ui);
+            padding: 10px 20px;
+            margin: 5px;
+            cursor: pointer;
+            font-family: var(--theme-font);
+        }
+        
+        button:hover {
+            background: var(--theme-ui);
+            color: var(--theme-bg);
+        }
+        
+        .test-container {
+            margin: 20px 0;
+            padding: 20px;
+            border: 1px dashed var(--theme-ui);
+        }
+        
+        .event-log {
+            background: #001100;
+            border: 1px solid var(--theme-ui);
+            padding: 10px;
+            margin: 20px 0;
+            min-height: 100px;
+            max-height: 200px;
+            overflow-y: auto;
+            font-size: 11px;
+        }
+        
+        .event-log__entry {
+            margin: 2px 0;
+            opacity: 0.8;
+        }
+        
+        .test-result {
+            padding: 10px;
+            margin: 5px 0;
+            border: 1px solid var(--theme-ui);
+        }
+        
+        .pass { color: #00ff00; }
+        .fail { color: #ff0000; }
+        
+        .demo-content {
+            padding: 10px;
+            background: rgba(0, 255, 0, 0.1);
+        }
+    </style>
+    <link rel="stylesheet" href="collapsible-container.css">
+</head>
+<body>
+    <h1>CollapsibleContainer Component Test Suite</h1>
+    
+    <div class="test-controls">
+        <h2>Test Controls</h2>
+        <button onclick="runTests()">Run All Tests</button>
+        <button onclick="clearStorage()">Clear Storage</button>
+        <button onclick="createMultiple()">Create 3 Containers</button>
+        <button onclick="expandAll()">Expand All</button>
+        <button onclick="collapseAll()">Collapse All</button>
+        <button onclick="destroyAll()">Destroy All</button>
+    </div>
+    
+    <div id="test-results"></div>
+    
+    <h2>Event Log</h2>
+    <div id="event-log" class="event-log"></div>
+    
+    <h2>Demo Containers</h2>
+    <div id="demo-area" class="test-container"></div>
+    
+    <script src="collapsible-container.js"></script>
+    <script>
+        // Test variables
+        let containers = [];
+        let eventCount = 0;
+        
+        // Event logging
+        function logEvent(e) {
+            eventCount++;
+            const log = document.getElementById('event-log');
+            const entry = document.createElement('div');
+            entry.className = 'event-log__entry';
+            entry.textContent = `[${eventCount}] ${e.type}: ${e.detail.title} (${e.detail.expanded ? 'expanded' : 'collapsed'})`;
+            log.insertBefore(entry, log.firstChild);
+        }
+        
+        // Listen for events
+        document.addEventListener('collapsible-expanded', logEvent);
+        document.addEventListener('collapsible-collapsed', logEvent);
+        
+        // Test suite
+        function runTests() {
+            const results = document.getElementById('test-results');
+            results.innerHTML = '<h2>Test Results</h2>';
+            
+            // Test 1: Creation
+            test('Container creates with correct structure', () => {
+                const c = new CollapsibleContainer({ title: 'TEST' });
+                const el = c.getElement();
+                return el && el.querySelector('.collapsible-container__title').textContent === 'TEST';
+            });
+            
+            // Test 2: Default collapsed state
+            test('Default state is collapsed', () => {
+                const c = new CollapsibleContainer();
+                return !c.isExpanded();
+            });
+            
+            // Test 3: Expand/Collapse
+            test('Toggle expands and collapses', () => {
+                const c = new CollapsibleContainer();
+                c.expand();
+                const expanded = c.isExpanded();
+                c.collapse();
+                const collapsed = !c.isExpanded();
+                return expanded && collapsed;
+            });
+            
+            // Test 4: Content visibility
+            test('Content shows/hides instantly', () => {
+                const c = new CollapsibleContainer();
+                const content = c.getContentElement();
+                c.expand();
+                const shown = content.style.display !== 'none';
+                c.collapse();
+                const hidden = content.style.display === 'none';
+                return shown && hidden;
+            });
+            
+            // Test 5: State persistence
+            test('State persists to localStorage', () => {
+                const c = new CollapsibleContainer({ id: 'persist-test' });
+                c.expand();
+                const stored = localStorage.getItem('collapsible-state');
+                return stored && JSON.parse(stored)['persist-test'] === true;
+            });
+            
+            // Test 6: State restoration
+            test('State restores from localStorage', () => {
+                localStorage.setItem('collapsible-state', '{"restore-test":true}');
+                const c = new CollapsibleContainer({ id: 'restore-test' });
+                return c.isExpanded();
+            });
+            
+            // Test 7: Arrow rotation
+            test('Arrow changes direction', () => {
+                const c = new CollapsibleContainer();
+                const toggle = c.getElement().querySelector('.collapsible-container__toggle');
+                c.collapse();
+                const down = toggle.innerHTML === '▼';
+                c.expand();
+                const up = toggle.innerHTML === '▲';
+                return down && up;
+            });
+            
+            // Test 8: Set content
+            test('Can set content', () => {
+                const c = new CollapsibleContainer();
+                c.setContent('Test content');
+                return c.getContentElement().textContent === 'Test content';
+            });
+            
+            // Test 9: Append child
+            test('Can append elements', () => {
+                const c = new CollapsibleContainer();
+                const div = document.createElement('div');
+                div.id = 'test-child';
+                c.appendChild(div);
+                return c.getContentElement().querySelector('#test-child') !== null;
+            });
+            
+            // Test 10: Events fire
+            test('Events dispatch correctly', () => {
+                const before = eventCount;
+                const c = new CollapsibleContainer({ title: 'EVENT TEST' });
+                c.expand();
+                c.collapse();
+                return eventCount > before + 1;
+            });
+            
+            // Test 11: Mount/Unmount
+            test('Mount and unmount work', () => {
+                const c = new CollapsibleContainer();
+                const parent = document.createElement('div');
+                c.mount(parent);
+                const mounted = parent.querySelector('.collapsible-container') !== null;
+                c.unmount();
+                const unmounted = parent.querySelector('.collapsible-container') === null;
+                return mounted && unmounted;
+            });
+            
+            // Test 12: Title update
+            test('Can update title', () => {
+                const c = new CollapsibleContainer({ title: 'OLD' });
+                c.setTitle('NEW');
+                return c.getElement().querySelector('.collapsible-container__title').textContent === 'NEW';
+            });
+        }
+        
+        function test(name, fn) {
+            const results = document.getElementById('test-results');
+            const result = document.createElement('div');
+            result.className = 'test-result';
+            
+            try {
+                const passed = fn();
+                result.innerHTML = `<span class="${passed ? 'pass' : 'fail'}">${passed ? '✓' : '✗'}</span> ${name}`;
+            } catch (e) {
+                result.innerHTML = `<span class="fail">✗</span> ${name} - Error: ${e.message}`;
+            }
+            
+            results.appendChild(result);
+        }
+        
+        // Demo functions
+        function createMultiple() {
+            const area = document.getElementById('demo-area');
+            area.innerHTML = '';
+            containers = [];
+            
+            // Create 3 different containers
+            const c1 = new CollapsibleContainer({
+                id: 'demo-1',
+                title: 'SHORTCUT SETTINGS',
+                defaultExpanded: false
+            });
+            c1.setContent(`
+                <div class="demo-content">
+                    <p>This would contain shortcut configuration options.</p>
+                    <p>Toggle shortcuts on/off, set labels, etc.</p>
+                </div>
+            `);
+            c1.mount(area);
+            containers.push(c1);
+            
+            const c2 = new CollapsibleContainer({
+                id: 'demo-2',
+                title: 'THEME SETTINGS',
+                defaultExpanded: true
+            });
+            c2.setContent(`
+                <div class="demo-content">
+                    <p>Theme configuration would go here.</p>
+                    <p>Colors, fonts, etc.</p>
+                </div>
+            `);
+            c2.mount(area);
+            containers.push(c2);
+            
+            const c3 = new CollapsibleContainer({
+                id: 'demo-3',
+                title: 'ADVANCED OPTIONS',
+                defaultExpanded: false
+            });
+            c3.setContent(`
+                <div class="demo-content">
+                    <p>Advanced configuration options.</p>
+                </div>
+            `);
+            c3.mount(area);
+            containers.push(c3);
+        }
+        
+        function expandAll() {
+            containers.forEach(c => c.expand());
+        }
+        
+        function collapseAll() {
+            containers.forEach(c => c.collapse());
+        }
+        
+        function destroyAll() {
+            containers.forEach(c => c.destroy());
+            containers = [];
+            document.getElementById('demo-area').innerHTML = '';
+        }
+        
+        function clearStorage() {
+            localStorage.removeItem('collapsible-state');
+            alert('Storage cleared! Refresh to see default states.');
+        }
+        
+        // Initialize on load
+        window.addEventListener('load', () => {
+            runTests();
+            createMultiple();
+        });
+    </script>
+</body>
+</html>

@@ -1,0 +1,323 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>ODS Shell v9.2.1 - Final Production Test</title>
+    
+    <!-- Theme Scripts -->
+    <script src="theme/constants.js"></script>
+    <script src="theme/index.js"></script>
+    
+    <style>
+        body {
+            font-family: var(--theme-font, 'Share Tech Mono', monospace);
+            padding: 20px;
+            background: var(--theme-bg, #000000);
+            color: var(--theme-text, #00FF00);
+        }
+        .test-section {
+            margin: 20px 0;
+            padding: 15px;
+            border: 1px solid var(--theme-ui, #00FF00);
+        }
+        .pass { color: var(--theme-ui, #00FF00); font-weight: bold; }
+        .fail { color: #ff0000; font-weight: bold; }
+        .info { color: #ffff00; }
+        h2 { border-bottom: 1px solid var(--theme-ui, #00FF00); padding-bottom: 5px; }
+        pre { background: var(--theme-bg, #000000); padding: 10px; overflow-x: auto; }
+        button {
+            background: var(--theme-bg, #000000);
+            color: var(--theme-ui, #00FF00);
+            border: 1px solid var(--theme-ui, #00FF00);
+            padding: 10px 20px;
+            cursor: pointer;
+            margin: 5px;
+        }
+        button:hover {
+            background: var(--theme-ui, #00FF00);
+            color: var(--theme-bg, #000000);
+        }
+    </style>
+</head>
+<body>
+    <h1>🚀 ODS Shell v9.2.1 - Final Production Test</h1>
+    
+    <div class="test-section">
+        <h2>1. System Status</h2>
+        <div id="status">Testing...</div>
+    </div>
+
+    <div class="test-section">
+        <h2>2. Performance Test</h2>
+        <div id="performance">Testing...</div>
+    </div>
+
+    <div class="test-section">
+        <h2>3. API Test</h2>
+        <div id="api-test">Testing...</div>
+    </div>
+
+    <div class="test-section">
+        <h2>4. Visual Test</h2>
+        <div id="visual-test">
+            <p>Manual verification required:</p>
+            <ul>
+                <li>Background should be pure black (#000000)</li>
+                <li>Text should be bright green (#00FF00)</li>
+                <li>Font should be Share Tech Mono</li>
+                <li>Mount points should display correctly</li>
+            </ul>
+        </div>
+    </div>
+
+    <div class="test-section">
+        <h2>5. Console Output</h2>
+        <div id="console-test">
+            <p>Expected console messages (check DevTools):</p>
+            <ol>
+                <li>ops.theme v2 initialized</li>
+                <li>ODS Shell v9.2 Initializing...</li>
+                <li>Service Worker: Registered (if online)</li>
+                <li>Storage: Available</li>
+                <li>Mount Points: Ready</li>
+                <li>ODS Shell: Theme system detected and integrated</li>
+                <li>ODS Shell Ready</li>
+            </ol>
+            <p class="info">Note: Console logging has been minimized for production.</p>
+        </div>
+    </div>
+
+    <div class="test-section">
+        <h2>6. Interactive Tests</h2>
+        <button onclick="testThemeChange()">Test Theme Change</button>
+        <button onclick="testOffline()">Test Offline Mode</button>
+        <button onclick="runAllTests()">Run All Tests Again</button>
+        <div id="interactive-results"></div>
+    </div>
+
+    <div class="test-section">
+        <h2>Test Results Summary</h2>
+        <div id="summary">Running tests...</div>
+    </div>
+
+    <script>
+        let testResults = {
+            theme: false,
+            shell: false,
+            api: false,
+            performance: false,
+            integration: false
+        };
+
+        function checkStatus() {
+            const statusDiv = document.getElementById('status');
+            let html = '<ul>';
+            
+            // Check theme
+            if (window.opsTheme) {
+                html += '<li class="pass">✓ Theme module loaded</li>';
+                if (window.opsTheme.initialized) {
+                    html += '<li class="pass">✓ Theme initialized</li>';
+                    testResults.theme = true;
+                } else {
+                    html += '<li class="fail">✗ Theme not initialized</li>';
+                }
+            } else {
+                html += '<li class="fail">✗ Theme module not found</li>';
+            }
+            
+            // Check shell
+            if (window.odsShell) {
+                html += '<li class="pass">✓ Shell loaded</li>';
+                if (window.odsShell.state && window.odsShell.state.initialized) {
+                    html += '<li class="pass">✓ Shell initialized</li>';
+                    testResults.shell = true;
+                } else {
+                    html += '<li class="fail">✗ Shell not initialized</li>';
+                }
+                
+                // Check theme integration
+                if (window.odsShell.state && window.odsShell.state.themeInitialized) {
+                    html += '<li class="pass">✓ Theme integration active</li>';
+                    testResults.integration = true;
+                } else {
+                    html += '<li class="fail">✗ Theme integration not active</li>';
+                }
+            } else {
+                html += '<li class="fail">✗ Shell not found</li>';
+            }
+            
+            html += '</ul>';
+            statusDiv.innerHTML = html;
+        }
+
+        function testPerformance() {
+            const perfDiv = document.getElementById('performance');
+            let html = '<ul>';
+            
+            // Test theme init speed
+            const start = performance.now();
+            if (window.opsTheme && window.opsTheme.init) {
+                window.opsTheme.init();
+                const end = performance.now();
+                const time = (end - start).toFixed(2);
+                if (time < 1) {
+                    html += `<li class="pass">✓ Theme init: ${time}ms (&lt;1ms target)</li>`;
+                    testResults.performance = true;
+                } else {
+                    html += `<li class="info">⚠ Theme init: ${time}ms (target &lt;1ms)</li>`;
+                }
+            }
+            
+            // Check CSS variables
+            const vars = window.opsTheme ? window.opsTheme.getCSSVariables() : {};
+            const varCount = Object.keys(vars).length;
+            html += `<li class="${varCount === 4 ? 'pass' : 'fail'}">
+                ${varCount === 4 ? '✓' : '✗'} CSS variables: ${varCount}/4 set</li>`;
+            
+            html += '</ul>';
+            perfDiv.innerHTML = html;
+        }
+
+        function testAPI() {
+            const apiDiv = document.getElementById('api-test');
+            let html = '<h3>Shell API Methods:</h3><ul>';
+            
+            // Test shell API
+            if (window.odsShell) {
+                // hasTheme
+                try {
+                    const hasTheme = window.odsShell.hasTheme();
+                    html += `<li class="pass">✓ hasTheme(): ${hasTheme}</li>`;
+                    testResults.api = true;
+                } catch (e) {
+                    html += `<li class="fail">✗ hasTheme() failed: ${e.message}</li>`;
+                }
+                
+                // getTheme
+                try {
+                    const theme = window.odsShell.getTheme();
+                    html += `<li class="pass">✓ getTheme(): ${theme ? 'object returned' : 'null'}</li>`;
+                } catch (e) {
+                    html += `<li class="fail">✗ getTheme() failed: ${e.message}</li>`;
+                }
+                
+                // getThemeStyles
+                try {
+                    const styles = window.odsShell.getThemeStyles();
+                    html += `<li class="pass">✓ getThemeStyles(): ${styles ? 'object returned' : 'null'}</li>`;
+                } catch (e) {
+                    html += `<li class="fail">✗ getThemeStyles() failed: ${e.message}</li>`;
+                }
+            } else {
+                html += '<li class="fail">✗ Shell not available</li>';
+            }
+            
+            html += '</ul><h3>Theme API Methods:</h3><ul>';
+            
+            // Test theme API
+            if (window.opsTheme) {
+                try {
+                    const theme = window.opsTheme.getTheme();
+                    html += `<li class="pass">✓ getTheme(): Terminal theme returned</li>`;
+                } catch (e) {
+                    html += `<li class="fail">✗ getTheme() failed</li>`;
+                }
+                
+                try {
+                    const vars = window.opsTheme.getCSSVariables();
+                    html += `<li class="pass">✓ getCSSVariables(): ${Object.keys(vars).length} variables</li>`;
+                } catch (e) {
+                    html += `<li class="fail">✗ getCSSVariables() failed</li>`;
+                }
+                
+                try {
+                    const verified = window.opsTheme.verify();
+                    html += `<li class="${verified ? 'pass' : 'fail'}">
+                        ${verified ? '✓' : '✗'} verify(): ${verified}</li>`;
+                } catch (e) {
+                    html += `<li class="fail">✗ verify() failed</li>`;
+                }
+            }
+            
+            html += '</ul>';
+            apiDiv.innerHTML = html;
+        }
+
+        function testThemeChange() {
+            const resultsDiv = document.getElementById('interactive-results');
+            resultsDiv.innerHTML = '<p class="info">Changing theme colors temporarily...</p>';
+            
+            // Change to red
+            document.documentElement.style.setProperty('--theme-text', 'red');
+            document.documentElement.style.setProperty('--theme-ui', 'blue');
+            
+            setTimeout(() => {
+                resultsDiv.innerHTML += '<p class="pass">✓ Colors changed. Resetting in 2 seconds...</p>';
+                
+                setTimeout(() => {
+                    // Reset
+                    window.opsTheme.init();
+                    resultsDiv.innerHTML += '<p class="pass">✓ Theme reset to default</p>';
+                }, 2000);
+            }, 100);
+        }
+
+        function testOffline() {
+            const resultsDiv = document.getElementById('interactive-results');
+            resultsDiv.innerHTML = `
+                <p class="info">To test offline mode:</p>
+                <ol>
+                    <li>Open DevTools (F12)</li>
+                    <li>Go to Network tab</li>
+                    <li>Check "Offline"</li>
+                    <li>Reload the main application</li>
+                    <li>Verify it still works</li>
+                </ol>
+            `;
+        }
+
+        function updateSummary() {
+            const summaryDiv = document.getElementById('summary');
+            const passed = Object.values(testResults).filter(v => v).length;
+            const total = Object.keys(testResults).length;
+            
+            let html = `<h3>Test Results: ${passed}/${total} Passed</h3><ul>`;
+            
+            for (const [test, result] of Object.entries(testResults)) {
+                html += `<li class="${result ? 'pass' : 'fail'}">
+                    ${result ? '✓' : '✗'} ${test.charAt(0).toUpperCase() + test.slice(1)} Test</li>`;
+            }
+            
+            html += '</ul>';
+            
+            if (passed === total) {
+                html += '<p class="pass"><strong>🎉 ALL TESTS PASSED! System is production-ready.</strong></p>';
+            } else {
+                html += '<p class="fail"><strong>⚠ Some tests failed. Review the results above.</strong></p>';
+            }
+            
+            summaryDiv.innerHTML = html;
+        }
+
+        function runAllTests() {
+            checkStatus();
+            testPerformance();
+            testAPI();
+            updateSummary();
+        }
+
+        // Wait for everything to load
+        setTimeout(() => {
+            runAllTests();
+        }, 1000);
+
+        // Go to main app
+        setTimeout(() => {
+            const link = document.createElement('p');
+            link.innerHTML = '<br><a href="index.html" style="color: #00ff00; font-size: 18px;">→ Go to Main Application</a>';
+            document.getElementById('summary').appendChild(link);
+        }, 1500);
+    </script>
+</body>
+</html>

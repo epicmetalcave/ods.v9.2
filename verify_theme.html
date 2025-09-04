@@ -1,0 +1,222 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Theme Verification - ODS v9.2</title>
+    
+    <!-- Theme Scripts - MUST load first -->
+    <script src="theme/constants.js"></script>
+    <script src="theme/index.js"></script>
+    
+    <!-- Core Styles -->
+    <link rel="stylesheet" href="css/shell.css">
+    
+    <style>
+        .verify-container {
+            padding: 20px;
+            font-family: var(--theme-font, 'Share Tech Mono', monospace);
+            max-width: 800px;
+            margin: 0 auto;
+        }
+        
+        .verify-header {
+            color: var(--theme-ui, #00FF00);
+            border-bottom: 2px solid var(--theme-ui, #00FF00);
+            padding-bottom: 10px;
+            margin-bottom: 20px;
+        }
+        
+        .verify-section {
+            margin: 20px 0;
+            padding: 15px;
+            border: 1px solid var(--theme-ui, #00FF00);
+        }
+        
+        .verify-result {
+            padding: 10px;
+            margin: 5px 0;
+            font-size: 14px;
+            border-left: 3px solid var(--theme-ui, #00FF00);
+            background: rgba(0, 255, 0, 0.05);
+        }
+        
+        .pass {
+            color: var(--theme-ui, #00FF00);
+        }
+        
+        .fail {
+            color: #FF3333;
+        }
+        
+        code {
+            background: rgba(0, 255, 0, 0.1);
+            padding: 2px 5px;
+            font-family: var(--theme-font, 'Share Tech Mono', monospace);
+        }
+        
+        button {
+            background: var(--theme-bg, #000000);
+            color: var(--theme-ui, #00FF00);
+            border: 1px solid var(--theme-ui, #00FF00);
+            padding: 10px 20px;
+            cursor: pointer;
+            font-family: var(--theme-font, 'Share Tech Mono', monospace);
+            margin: 5px;
+        }
+        
+        button:hover {
+            background: var(--theme-ui, #00FF00);
+            color: var(--theme-bg, #000000);
+        }
+    </style>
+</head>
+<body>
+    <div class="verify-container">
+        <h1 class="verify-header">THEME VERIFICATION - BACKGROUND COLOR FIX</h1>
+        
+        <div class="verify-section">
+            <h2>CSS Variable Status</h2>
+            <div id="css-vars" class="verify-result">Checking...</div>
+        </div>
+        
+        <div class="verify-section">
+            <h2>Computed Styles</h2>
+            <div id="computed-styles" class="verify-result">Checking...</div>
+        </div>
+        
+        <div class="verify-section">
+            <h2>Theme Initialization</h2>
+            <div id="theme-init" class="verify-result">Checking...</div>
+        </div>
+        
+        <div class="verify-section">
+            <h2>Background Color Test</h2>
+            <div id="bg-test" class="verify-result">Checking...</div>
+            <button onclick="testBackground()">Run Background Test</button>
+            <button onclick="location.reload()">Reload Page</button>
+        </div>
+        
+        <div class="verify-section">
+            <h2>Summary</h2>
+            <div id="summary" class="verify-result">Analyzing...</div>
+        </div>
+    </div>
+    
+    <script>
+        // Wait for DOM and theme to load
+        window.addEventListener('DOMContentLoaded', function() {
+            setTimeout(runVerification, 100);
+        });
+        
+        function runVerification() {
+            // Check CSS Variables
+            const cssVarsDiv = document.getElementById('css-vars');
+            const root = document.documentElement;
+            const themeBg = getComputedStyle(root).getPropertyValue('--theme-bg').trim();
+            const themeText = getComputedStyle(root).getPropertyValue('--theme-text').trim();
+            const themeUI = getComputedStyle(root).getPropertyValue('--theme-ui').trim();
+            const themeFont = getComputedStyle(root).getPropertyValue('--theme-font').trim();
+            
+            cssVarsDiv.innerHTML = `
+                <div>--theme-bg: <code>${themeBg || 'NOT SET'}</code> ${themeBg === '#000000' ? '<span class="pass">✓ CORRECT</span>' : '<span class="fail">✗ WRONG</span>'}</div>
+                <div>--theme-text: <code>${themeText || 'NOT SET'}</code> ${themeText === '#00ff00' || themeText === '#00FF00' ? '<span class="pass">✓</span>' : '<span class="fail">✗</span>'}</div>
+                <div>--theme-ui: <code>${themeUI || 'NOT SET'}</code> ${themeUI === '#00ff00' || themeUI === '#00FF00' ? '<span class="pass">✓</span>' : '<span class="fail">✗</span>'}</div>
+                <div>--theme-font: <code>${themeFont ? themeFont.substring(0, 20) + '...' : 'NOT SET'}</code> ${themeFont ? '<span class="pass">✓</span>' : '<span class="fail">✗</span>'}</div>
+            `;
+            
+            // Check Computed Styles
+            const computedDiv = document.getElementById('computed-styles');
+            const bodyBg = getComputedStyle(document.body).backgroundColor;
+            const bodyColor = getComputedStyle(document.body).color;
+            const bodyFont = getComputedStyle(document.body).fontFamily;
+            
+            // Convert rgb to hex for comparison
+            const rgbToHex = (rgb) => {
+                const match = rgb.match(/^rgb\((\d+),\s*(\d+),\s*(\d+)\)$/);
+                if (match) {
+                    const hex = '#' + [1, 2, 3].map(i => 
+                        ('0' + parseInt(match[i]).toString(16)).slice(-2)
+                    ).join('');
+                    return hex;
+                }
+                return rgb;
+            };
+            
+            const bodyBgHex = rgbToHex(bodyBg);
+            const isPureBlack = bodyBg === 'rgb(0, 0, 0)' || bodyBgHex === '#000000';
+            
+            computedDiv.innerHTML = `
+                <div>body background: <code>${bodyBg}</code> ${isPureBlack ? '<span class="pass">✓ PURE BLACK!</span>' : '<span class="fail">✗ NOT PURE BLACK</span>'}</div>
+                <div>body color: <code>${bodyColor}</code></div>
+                <div>body font: <code>${bodyFont.substring(0, 30)}...</code></div>
+                ${!isPureBlack ? '<div class="fail">⚠️ Background is showing as: ' + bodyBgHex + ' instead of #000000</div>' : ''}
+            `;
+            
+            // Check Theme Initialization
+            const themeDiv = document.getElementById('theme-init');
+            const themeStatus = window.opsTheme ? window.opsTheme.initialized : false;
+            const themeVars = window.opsTheme ? window.opsTheme.getCSSVariables() : {};
+            
+            themeDiv.innerHTML = `
+                <div>opsTheme object: ${window.opsTheme ? '<span class="pass">✓ Exists</span>' : '<span class="fail">✗ Missing</span>'}</div>
+                <div>Theme initialized: ${themeStatus ? '<span class="pass">✓ Yes</span>' : '<span class="fail">✗ No</span>'}</div>
+                <div>Theme version: <code>${window.opsTheme ? window.opsTheme.version : 'N/A'}</code></div>
+            `;
+            
+            // Background Test
+            const bgTestDiv = document.getElementById('bg-test');
+            bgTestDiv.innerHTML = `
+                <div>Current body background: <code>${bodyBg}</code></div>
+                <div>Expected: <code>rgb(0, 0, 0)</code> or <code>#000000</code></div>
+                <div>Status: ${isPureBlack ? '<span class="pass">✓ PASS - Background is pure black!</span>' : '<span class="fail">✗ FAIL - Background is not pure black</span>'}</div>
+            `;
+            
+            // Summary
+            const summaryDiv = document.getElementById('summary');
+            const allGood = isPureBlack && themeStatus && themeBg === '#000000';
+            
+            if (allGood) {
+                summaryDiv.innerHTML = `
+                    <div class="pass">
+                        <h3>✓ SUCCESS! Theme is working correctly!</h3>
+                        <p>• Background is pure black (#000000)</p>
+                        <p>• Theme variables are properly set</p>
+                        <p>• No gray override detected</p>
+                    </div>
+                `;
+            } else {
+                summaryDiv.innerHTML = `
+                    <div class="fail">
+                        <h3>⚠️ Issues detected:</h3>
+                        ${!isPureBlack ? '<p>• Background is not pure black (showing ' + bodyBgHex + ')</p>' : ''}
+                        ${!themeStatus ? '<p>• Theme not initialized properly</p>' : ''}
+                        ${themeBg !== '#000000' ? '<p>• CSS variable --theme-bg not set correctly</p>' : ''}
+                        <p><strong>Troubleshooting:</strong></p>
+                        <p>1. Check browser DevTools for any inline styles on body</p>
+                        <p>2. Look for CSS files loaded after theme that override background</p>
+                        <p>3. Check for browser extensions modifying styles</p>
+                    </div>
+                `;
+            }
+        }
+        
+        function testBackground() {
+            // Temporarily set background to red
+            document.body.style.background = 'red';
+            
+            setTimeout(() => {
+                // Remove inline style
+                document.body.style.background = '';
+                
+                // Check what it reverts to
+                const revertedBg = getComputedStyle(document.body).backgroundColor;
+                
+                alert('After removing inline style, background is: ' + revertedBg + '\n\nIf this is rgb(0, 0, 0), the fix worked!\nIf it\'s rgb(26, 26, 26), there\'s still an override somewhere.');
+                
+                runVerification();
+            }, 1000);
+        }
+    </script>
+</body>
+</html>

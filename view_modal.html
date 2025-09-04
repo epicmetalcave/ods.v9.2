@@ -1,0 +1,49 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Modal View</title>
+    
+    <!-- Your theme -->
+    <script src="theme/constants.js"></script>
+    <script src="theme/index.js"></script>
+    
+    <!-- Modal CSS -->
+    <link rel="stylesheet" href="modal/ods.modal.css">
+    
+    <style>
+        body {
+            margin: 0;
+            background: var(--theme-bg, #000000);
+            color: var(--theme-text, #00FF00);
+            font-family: var(--theme-font, 'Share Tech Mono', monospace);
+        }
+    </style>
+</head>
+<body>
+    <!-- Modal scripts -->
+    <script src="modal/ods.modal.js" type="module"></script>
+    <script src="modal/ods.settings.js" type="module"></script>
+    
+    <script type="module">
+        // Auto-open modal on page load
+        window.addEventListener('DOMContentLoaded', () => {
+            // Register modal
+            ODS.modalSystem.register({
+                id: 'demo',
+                title: 'Empty Template Modal',
+                moduleId: 'template',
+                showModuleSettings: true,
+                content: '<div style="padding: 20px;"><p>Module content area - empty template</p></div>'
+            });
+            
+            // Open immediately
+            ODS.modalSystem.open('demo');
+            
+            console.log('Modal should now be visible');
+            console.log('Modal container:', document.querySelector('.modal-container'));
+        });
+    </script>
+</body>
+</html>

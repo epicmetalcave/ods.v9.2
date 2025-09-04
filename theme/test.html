@@ -1,0 +1,37 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Theme Module Test</title>
+    <script src="constants.js"></script>
+    <script src="index.js"></script>
+    <style>
+        body {
+            background: var(--theme-bg, white);
+            color: var(--theme-text, black);
+            font-family: var(--theme-font, sans-serif);
+            padding: 20px;
+        }
+        .test-box {
+            border: 2px solid var(--theme-ui, gray);
+            padding: 20px;
+            margin: 20px 0;
+        }
+    </style>
+</head>
+<body>
+    <h1>Theme Module Test</h1>
+    <div class="test-box">
+        <p>This should be green text on black background.</p>
+        <p>Border should be green.</p>
+        <p>Font should be Share Tech Mono.</p>
+    </div>
+    <script>
+        // Test verification
+        setTimeout(() => {
+            console.log('Theme object:', window.opsTheme);
+            console.log('CSS Variables:', window.opsTheme.getCSSVariables());
+            window.opsTheme.verify();
+        }, 100);
+    </script>
+</body>
+</html>

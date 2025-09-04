@@ -1,0 +1,337 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ShortcutSettings Event System Test</title>
+    <style>
+        :root {
+            --theme-bg: #000000;
+            --theme-text: #00FF00;
+            --theme-ui: #00FF00;
+            --theme-font: 'Courier New', monospace;
+        }
+        
+        body {
+            background: var(--theme-bg);
+            color: var(--theme-text);
+            font-family: var(--theme-font);
+            padding: 20px;
+            margin: 0;
+        }
+        
+        h1, h2 {
+            border-bottom: 1px solid var(--theme-ui);
+            padding-bottom: 10px;
+        }
+        
+        .test-controls {
+            margin: 20px 0;
+            padding: 20px;
+            border: 1px solid var(--theme-ui);
+        }
+        
+        button {
+            background: var(--theme-bg);
+            color: var(--theme-ui);
+            border: 1px solid var(--theme-ui);
+            padding: 10px 20px;
+            margin: 5px;
+            cursor: pointer;
+            font-family: var(--theme-font);
+        }
+        
+        button:hover {
+            background: var(--theme-ui);
+            color: var(--theme-bg);
+        }
+        
+        .event-log {
+            background: #001100;
+            border: 1px solid var(--theme-ui);
+            padding: 10px;
+            margin: 20px 0;
+            height: 300px;
+            overflow-y: auto;
+            font-size: 11px;
+        }
+        
+        .event-entry {
+            margin: 2px 0;
+            padding: 4px;
+            border-left: 2px solid var(--theme-ui);
+        }
+        
+        .event-entry--shortcuts-updated {
+            border-left-color: #00FFFF;
+        }
+        
+        .event-entry--shortcut-settings-change {
+            border-left-color: #FFFF00;
+        }
+        
+        .event-entry--open-shortcut-organization {
+            border-left-color: #FF00FF;
+        }
+        
+        .demo-container {
+            margin: 20px 0;
+            padding: 20px;
+            border: 1px solid var(--theme-ui);
+        }
+        
+        .test-result {
+            padding: 10px;
+            margin: 5px 0;
+            border: 1px solid var(--theme-ui);
+        }
+        
+        .pass { color: #00ff00; }
+        .fail { color: #ff0000; }
+        
+        .stats {
+            display: flex;
+            gap: 20px;
+            margin: 20px 0;
+        }
+        
+        .stat-item {
+            padding: 10px;
+            border: 1px solid var(--theme-ui);
+        }
+    </style>
+    <link rel="stylesheet" href="../../../core/components/collapsible/collapsible-container.css">
+    <link rel="stylesheet" href="../../../core/components/modal-settings/modal-settings.css">
+    <link rel="stylesheet" href="shortcut-settings.css">
+</head>
+<body>
+    <h1>ShortcutSettings Event System Test</h1>
+    
+    <div class="test-controls">
+        <h2>Event Testing Controls</h2>
+        <button onclick="runEventTests()">Run Event Tests</button>
+        <button onclick="clearEventLog()">Clear Log</button>
+        <button onclick="simulateStorageUpdate()">Simulate Storage Update</button>
+        <button onclick="simulateToggleOn()">Simulate Toggle ON</button>
+        <button onclick="simulateToggleOff()">Simulate Toggle OFF</button>
+        <button onclick="simulateLabelChange()">Simulate Label Change</button>
+        <button onclick="clickOrganizeLink()">Click Organize Link</button>
+    </div>
+    
+    <div class="stats">
+        <div class="stat-item">
+            <strong>Events Captured:</strong> <span id="event-count">0</span>
+        </div>
+        <div class="stat-item">
+            <strong>Storage Updates:</strong> <span id="storage-count">0</span>
+        </div>
+        <div class="stat-item">
+            <strong>Settings Changes:</strong> <span id="change-count">0</span>
+        </div>
+        <div class="stat-item">
+            <strong>Organize Requests:</strong> <span id="organize-count">0</span>
+        </div>
+    </div>
+    
+    <div id="test-results"></div>
+    
+    <h2>Event Log</h2>
+    <div id="event-log" class="event-log"></div>
+    
+    <h2>Demo Settings Panel</h2>
+    <div id="demo-container" class="demo-container"></div>
+    
+    <script src="../../../core/components/collapsible/collapsible-container.js"></script>
+    <script src="../../../core/components/modal-settings/modal-settings.js"></script>
+    <script src="../../../core/storage/shortcut-store.js"></script>
+    <script src="shortcut-settings.js"></script>
+    <script>
+        // Event counters
+        let eventStats = {
+            total: 0,
+            storage: 0,
+            changes: 0,
+            organize: 0
+        };
+        
+        let settingsPanel = null;
+        let store = null;
+        
+        // Initialize
+        function initialize() {
+            // Create settings panel
+            settingsPanel = new ShortcutSettings({
+                modalId: 'test-modal',
+                modalTitle: 'Test Modal'
+            });
+            
+            settingsPanel.mount(document.getElementById('demo-container'));
+            settingsPanel.expand();
+            
+            // Create data store
+            store = new ShortcutDataStore();
+            
+            // Set up event listeners
+            setupEventListeners();
+            
+            logEvent('System', 'Initialized ShortcutSettings and event listeners');
+        }
+        
+        // Set up global event listeners
+        function setupEventListeners() {
+            document.addEventListener('shortcuts-updated', (e) => {
+                eventStats.storage++;
+                eventStats.total++;
+                updateStats();
+                logEvent('shortcuts-updated', e.detail);
+            });
+            
+            document.addEventListener('shortcut-settings-change', (e) => {
+                eventStats.changes++;
+                eventStats.total++;
+                updateStats();
+                logEvent('shortcut-settings-change', e.detail);
+            });
+            
+            document.addEventListener('open-shortcut-organization', (e) => {
+                eventStats.organize++;
+                eventStats.total++;
+                updateStats();
+                logEvent('open-shortcut-organization', e.detail);
+            });
+        }
+        
+        // Log events to display
+        function logEvent(type, detail) {
+            const log = document.getElementById('event-log');
+            const entry = document.createElement('div');
+            entry.className = `event-entry event-entry--${type}`;
+            
+            const time = new Date().toLocaleTimeString();
+            entry.innerHTML = `
+                <strong>[${time}] ${type}:</strong><br>
+                ${JSON.stringify(detail, null, 2)}
+            `;
+            
+            log.insertBefore(entry, log.firstChild);
+        }
+        
+        // Update statistics
+        function updateStats() {
+            document.getElementById('event-count').textContent = eventStats.total;
+            document.getElementById('storage-count').textContent = eventStats.storage;
+            document.getElementById('change-count').textContent = eventStats.changes;
+            document.getElementById('organize-count').textContent = eventStats.organize;
+        }
+        
+        // Test functions
+        function runEventTests() {
+            const results = document.getElementById('test-results');
+            results.innerHTML = '<h2>Event Test Results</h2>';
+            
+            // Test 1: Event system initialized
+            test('Event system initialized', () => {
+                return settingsPanel.handleShortcutUpdate !== undefined;
+            });
+            
+            // Test 2: Can dispatch events
+            test('Can dispatch shortcut change events', () => {
+                const before = eventStats.changes;
+                settingsPanel.dispatchShortcutChange('test', {});
+                return eventStats.changes > before;
+            });
+            
+            // Test 3: Responds to storage updates
+            test('Responds to storage updates', () => {
+                const before = eventStats.storage;
+                store.toggle('test-modal', true, 'Test');
+                return eventStats.storage > before;
+            });
+            
+            // Test 4: Organization link works
+            test('Organization link clickable', () => {
+                const link = settingsPanel.elements.description.querySelector('.shortcut-settings__link');
+                return link !== null;
+            });
+            
+            // Test 5: Position updates work
+            test('Position info updates', () => {
+                settingsPanel.updatePositionInfo(5, true);
+                const visible = settingsPanel.elements.positionArea.style.display === 'block';
+                const hasText = settingsPanel.elements.positionArea.textContent.includes('Position 5');
+                return visible && hasText;
+            });
+            
+            // Test 6: Clean destroy
+            test('Event listeners cleaned on destroy', () => {
+                const temp = new ShortcutSettings({ modalId: 'temp' });
+                temp.mount(document.body);
+                const hasListener = temp.handleShortcutUpdate !== undefined;
+                temp.destroy();
+                // Check element is removed
+                return hasListener && !document.getElementById('shortcut-settings-temp');
+            });
+        }
+        
+        function test(name, fn) {
+            const results = document.getElementById('test-results');
+            const result = document.createElement('div');
+            result.className = 'test-result';
+            
+            try {
+                const passed = fn();
+                result.innerHTML = `<span class="${passed ? 'pass' : 'fail'}">${passed ? '✓' : '✗'}</span> ${name}`;
+            } catch (e) {
+                result.innerHTML = `<span class="fail">✗</span> ${name} - Error: ${e.message}`;
+            }
+            
+            results.appendChild(result);
+        }
+        
+        // Simulation functions
+        function simulateStorageUpdate() {
+            store.toggle('test-modal', true, 'Test Modal');
+            logEvent('Action', 'Simulated storage update');
+        }
+        
+        function simulateToggleOn() {
+            settingsPanel.simulateToggle(true);
+            logEvent('Action', 'Simulated toggle ON');
+        }
+        
+        function simulateToggleOff() {
+            settingsPanel.simulateToggle(false);
+            logEvent('Action', 'Simulated toggle OFF');
+        }
+        
+        function simulateLabelChange() {
+            const label = prompt('Enter new label:', 'ABC');
+            if (label) {
+                settingsPanel.simulateLabelChange(label);
+                logEvent('Action', `Simulated label change to "${label}"`);
+            }
+        }
+        
+        function clickOrganizeLink() {
+            const link = settingsPanel.elements.description.querySelector('.shortcut-settings__link');
+            if (link) {
+                link.click();
+                logEvent('Action', 'Clicked organize link');
+            }
+        }
+        
+        function clearEventLog() {
+            document.getElementById('event-log').innerHTML = '';
+            eventStats = { total: 0, storage: 0, changes: 0, organize: 0 };
+            updateStats();
+            logEvent('System', 'Event log cleared');
+        }
+        
+        // Initialize on load
+        window.addEventListener('load', () => {
+            initialize();
+            runEventTests();
+        });
+    </script>
+</body>
+</html>
